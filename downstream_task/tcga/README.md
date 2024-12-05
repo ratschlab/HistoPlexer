@@ -36,7 +36,7 @@ python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
 
 For the grid search, pass the hyperparameters as a list in the config dictionary in the JSON file. For example, to perform a grid search on the discriminator's learning rate, include `{"lr_D": [1e-3, 1e-4, 1e-5]}` in the config. This will generate three different `config.json` files and corresponding `run.sh` scripts, saved in three different folders under `/path/to/results`.
 
-To modify the job submitting script for different environments (e.g., biomed and USZ DGX cluster), modify [here](https://github.com/ratschlab/Attn_MIL/blob/main/src/config/config_grid.py#L24-L29).
+To modify the job submitting script, see [here](https://github.com/ratschlab/HistoPlexer/blob/main/downstream_task/tcga/src/config/config_grid.py#L25-L33).
 
 ## Configuration Settings
 
