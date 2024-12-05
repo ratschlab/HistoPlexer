@@ -24,12 +24,12 @@ class ConfigGridRunner:
             # add lines of bash script
             script_lines = '\n'.join([
                 '#!/bin/bash',
-                '#SBATCH --output=/usr/bmicnas02/data-biwi-01/bochen_data/results/LOGS/%j.out',
-                '#SBATCH --error=/usr/bmicnas02/data-biwi-01/bochen_data/results/LOGS/%j.out',
+                '#SBATCH --output=/path/to/output/LOGS/%j.out',
+                '#SBATCH --error=/path/to/output/LOGS/%j.out',
                 '#SBATCH --gres=gpu:1',
                 '#SBATCH --mem=60G',
                 '',
-                'source /itet-stor/bochen/net_scratch/conda/etc/profile.d/conda.sh',
+                'source /path/to/conda/conda/etc/profile.d/conda.sh',
                 'conda activate pytcu11',
                 '',
                 f'python -m bin.train --config_path {os.path.join(save_path, "config.json")}'
