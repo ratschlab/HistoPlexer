@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from typing import Any
+import kornia
 
 import torch
 import torch.nn as nn
@@ -11,7 +12,8 @@ from torch.nn import init
 import torchvision.transforms.functional as ttf
 from torch.nn import Conv2d, ConvTranspose2d
 from torch import Tensor
-from codebase.utils.constants import *
+from histoplexer.utils.constants import *
+
 
 def get_optimizer(network, network_type, lr_scheduler_type='fixed', lazy_c=None):
     ''' Get optimizer for network
@@ -111,11 +113,41 @@ def update_translator_bool(rule='prob', dis_fake_loss=None):
 
     return if_update
 
-# 
 # -----------------------------------------------------------------
 # Helper classes for models 
 # -----------------------------------------------------------------
 
+class Gauss_Pyramid_Conv(nn.Module):
+    """
+    Code borrowed from: https://github.com/csjliang/LPTN
+    """
+    def __init__(self, num_high=3, num_blur=4, channels=11):
+        super(Gauss_Pyramid_Conv, self).__init__()
+
+        self.num_high = num_high
+        self.num_blur = num_blur
+        self.channels = channels
+        
+    def downsample(self, x):
+        return kornia.filters.blur_pool2d(x, kernel_size=3, stride=2)
+
+    def conv_gauss(self, img):
+        # Parameters for gaussian_blur2d: (input, kernel_size, sigma)
+        return kornia.filters.gaussian_blur2d(img, (3, 3), (1, 1))
+    
+    def forward(self, img):
+        current = img
+        pyr = [current]
+        for _ in range(self.num_high):
+            # Applying gaussian blur 4 times
+            for _ in range(self.num_blur):
+                current = self.conv_gauss(current)
+            # Downsample using blur_pool2d
+            down = self.downsample(current)
+            current = down
+            pyr.append(current)
+        return pyr
+    
 class MinibatchStdLayer(nn.Module):
     def __init__(self, group_size, n_chan=1):
         super().__init__()
@@ -324,7 +356,6 @@ class SNDownBlock(nn.Module):
 # -----------------------------------------------------------------
 # Translator model for Histoplexer
 # -----------------------------------------------------------------
-
 class unet_translator(nn.Module):
     def __init__(self, n_output_channels, last_activation='relu', flag_asymmetric=True, flag_multiscale=True, 
                  n_input_channels=3, n_filter=32, depth=6, which_decoder='conv', encoder_padding=1, decoder_padding=1, eq_lr=False):
@@ -444,7 +475,6 @@ class unet_translator(nn.Module):
 # -----------------------------------------------------------------
 # Discriminator model for Histoplexer
 # -----------------------------------------------------------------
-        
 class Discriminator(torch.nn.Module):    
     def __init__(self, n_output_channels, flag_asymmetric=True, flag_multiscale=True, n_input_channels=3, n_filter=32, depth=6, mbdis=True, eq_lr=False):
         """
