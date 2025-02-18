@@ -18,6 +18,7 @@ def main(args, device):
         device: gpu or cpu device
     """
     seed_everything(seed=args.seed, device=device) # checked
+
     train_dataset = TuProDataset(
         split=args.split,
         mode='train',
@@ -29,12 +30,24 @@ def main(args, device):
         channels=args.channels
     )
 
+    datasets = [train_dataset]
+
+    if args.val: 
+        val_dataset = TuProDataset(
+            split=args.split,
+            mode='valid',
+            src_folder=args.src_folder,
+            tgt_folder=args.tgt_folder,
+            use_high_res=args.use_high_res,
+            p_flip_jitter_hed_affine=args.p_flip_jitter_hed_affine,
+            patch_size=args.patch_size,
+            channels=args.channels
+        )
+        datasets.append(val_dataset)
+    
     print(f"Number of training images: {len(train_dataset)}")
 
     # initialize trainer
-    datasets = [
-        train_dataset
-    ]
     trainer = HistoplexerTrainer(args=args, datasets=datasets)
     trainer.train()
 
