@@ -2,18 +2,15 @@
 *.pyc
 __pycache__/
 
+**/*.pyc
+**/__pycache__/
+# Ignore Python bytecode files in __pycache__ directories
+bin/__pycache__/*.pyc
+src/config/__pycache__/*.pyc
+src/dataset/__pycache__/*.pyc
+src/trainers/__pycache__/*.pyc
+#
 # Ignore common file formats
 *.log          # Log files
-*.tmp          # Temporary files
-*.bak          # Backup files
-*.swp          # Swap files
 *.DS_Store     # macOS Finder files
-*.exe          # Executable files
-*.so           # Shared libraries
-*.zip          # Compressed files
-*.tar          # Tarball files
-*.tar.gz       # Gzipped tarballs
-*.tgz          # Gzipped tarballs
-*.rar          # RAR files
-*.7z           # 7-Zip files
 
