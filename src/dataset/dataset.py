@@ -6,6 +6,9 @@ import torch
 import random
 import os
 import json
+import math
+import torchvision
+
 
 from src.utils.data.transforms import HE_transforms, shared_transforms
 
@@ -198,4 +201,47 @@ class TuProDataset(BaseDataset):
                 'imc_path': self.tgt_paths[idx], 
                 'idx': idx
                } 
-            
+                 
+
+class InferenceDataset(Dataset):
+    def __init__(self, input_paths):
+        """
+        Args:
+            file_paths (list): List of paths to input .npy files.
+            output_paths (list): List of paths to save the output of the model.
+            transform (callable, optional): A function/transform to apply to the data.
+        """
+        self.input_paths = input_paths
+
+    def __len__(self):
+        return len(self.input_paths)
+
+    def __getitem__(self, idx):
+        img_name = self.input_paths[idx].split('/')[-1].split('.')[0]
+        input_img = np.load(self.input_paths[idx], mmap_mode='r') # what if diff file format? 
+        input_shape = int(input_img.shape[0]) # used for cropping later
+        input_img = self.transform_np_to_tensor(input_img)
+        input_img = self.pad_img(input_img, input_shape)
+        return input_img, img_name, input_shape
+
+    @staticmethod
+    def transform_np_to_tensor(np_img):
+        ''' Construct torch tensor from a numpy array
+        np_img: numpy array of shape [H,W,C]
+        returns a torch tensor with shape [C,H,W]
+        '''
+        torch_img = np_img.transpose((2, 0, 1))
+        torch_img = np.ascontiguousarray(torch_img)
+        torch_img = torch.from_numpy(torch_img).float()
+        return torch_img
+    
+    @staticmethod
+    def pad_img(torch_img, input_shape=4000):
+        ''' Pad image to make it compatible wth the model (eg /2)
+        torch_img: torch tensor (expects a squared image)
+        input_shape: shape ([0]) of the input H&E image
+        returns a padded image (torch tensor)
+        '''
+        padding = (2**(round(math.log(input_shape, 2))) - input_shape)//2
+        torch_img = torchvision.transforms.Pad(padding, padding_mode='reflect')(torch_img)
+        return torch_img
