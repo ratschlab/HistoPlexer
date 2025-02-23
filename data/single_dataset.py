@@ -35,25 +35,11 @@ class SingleDataset(BaseDataset):
             A(tensor) - - an image in one domain
             A_paths(str) - - the path of the image
         """
-        # he_roi = np.load(self.A_paths[idx], mmap_mode='r')
-        # he_roi = scipy.ndimage.zoom(he_roi, (1. / 4, 1. / 4, 1), order=1)
-        # he_roi = he_roi.transpose((2, 0, 1))
-        # he_roi = torch.from_numpy(he_roi.astype(np.float32))
         
-        # return {'A': he_roi, 'A_paths': self.A_paths[idx]}
-
-        #################################
-        # comment if pre-extract patches
-        #################################
-        he_roi = np.load(self.A_paths[idx], mmap_mode='r')
-        
-        augment_x_offset = random.randint(0, 1000 - self.patch_size)
-        augment_y_offset = random.randint(0, 1000 - self.patch_size)
+        he_patch = np.load(self.A_paths[idx], mmap_mode='r')
         
         factor = 4
-        he_roi = scipy.ndimage.zoom(he_roi, (1. / factor, 1. / factor, 1), order=1)
-        he_patch = he_roi[augment_y_offset: augment_y_offset + self.patch_size,
-                            augment_x_offset: augment_x_offset + self.patch_size, :]
+        he_patch = scipy.ndimage.zoom(he_patch, (1. / factor, 1. / factor, 1), order=1)
         
         he_patch = he_patch.transpose((2, 0, 1))
         

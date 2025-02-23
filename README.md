@@ -30,6 +30,10 @@ python train.py --dataroot path/to/parent/folder/of/he/and/imc \
 - `--n_epochs_decay`: Number of epochs to decay the learning rate linearly to zero.
 - `--gpu_ids`: Specifies which GPU(s) to use.
 
+### Input Requirements:
+- The model expects **H&E images** to be **1024x1024**.
+- The model expects **IMC images** to be **256x256**.
+
 ## Testing
 To test the trained model, use the following command:
 
@@ -45,3 +49,11 @@ python test.py --dataroot path/to/he/folder \
 - `--name`: Name of the experiment (must match the training experiment name).
 - `--model`: Specifies that testing is being performed.
 - `--netG`: Specifies the generator architecture (must match the architecture used during training).
+
+### Testing Process:
+- The model expects **H&E images** to be **1024x1024** for testing.
+- Since large **H&E ROIs** may be bigger than the model input, you need to **patch** the H&E ROI into **1024x1024** segments.
+- Perform prediction separately on each patch.
+- **Stitch back** the predicted patches to reconstruct the full ROI.
+
+

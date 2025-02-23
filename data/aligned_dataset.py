@@ -57,7 +57,7 @@ class AlignedDataset(BaseDataset):
         BaseDataset.__init__(self, opt)
         # self.dir_AB = os.path.join(opt.dataroot, opt.phase)  # get the image directory
         self.dir_AB = opt.dataroot
-        self.dir_A = os.path.join(self.dir_AB, 'binary_he_rois')
+        self.dir_A = os.path.join(self.dir_AB, 'binary_he_patchs')
         self.dir_B = os.path.join(self.dir_AB, 'binary_imc_processed_11x')
         self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))
         self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))
@@ -86,22 +86,11 @@ class AlignedDataset(BaseDataset):
         """
         sample = os.path.basename(self.A_paths[idx]).split('.')[0]
         
-        #################################
-        # comment if pre-extract patches
-        #################################
-        he_roi = np.load(self.A_paths[idx], mmap_mode='r')
-        imc_roi = np.load(self.B_paths[idx], mmap_mode='r')
+        he_patch = np.load(self.A_paths[idx], mmap_mode='r')
+        imc_patch = np.load(self.B_paths[idx], mmap_mode='r')
         
-        augment_x_offset = random.randint(0, 1000 - self.patch_size)
-        augment_y_offset = random.randint(0, 1000 - self.patch_size)
-        
-        imc_patch = imc_roi[augment_y_offset: augment_y_offset + self.patch_size,
-                            augment_x_offset: augment_x_offset + self.patch_size, :]
-        
-        factor = int(he_roi.shape[1] / imc_roi.shape[1])
-        he_roi = scipy.ndimage.zoom(he_roi, (1. / factor, 1. / factor, 1), order=1)
-        he_patch = he_roi[augment_y_offset: augment_y_offset + self.patch_size,
-                            augment_x_offset: augment_x_offset + self.patch_size, :]
+        factor = 4
+        he_patch = scipy.ndimage.zoom(he_patch, (1. / factor, 1. / factor, 1), order=1)
         
         he_patch = he_patch.transpose((2, 0, 1))
         imc_patch = imc_patch.transpose((2, 0, 1))
