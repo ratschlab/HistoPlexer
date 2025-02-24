@@ -4,6 +4,7 @@ from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
 import scipy
+import scipy.ndimage
 import random
 import torch
 from torchvision import transforms
