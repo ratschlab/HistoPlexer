@@ -33,6 +33,7 @@ from models import create_model
 from util.visualizer import save_images
 from util import html
 import numpy as np
+import torch 
 
 try:
     import wandb
@@ -73,7 +74,8 @@ if __name__ == '__main__':
         #     break
         model.set_input(data)  # unpack data from data loader
         fake = model.test()           # run inference
-        fake = fake.cpu().numpy()
+        fake = fake[:, :, 12:-12, 12:-12] # crop 1024 to 1000: 1x11x1024x1024 --> 1x11x1000x1000
+        fake = fake.squeeze(0).permute(1, 2, 0).cpu().numpy() # 1x11x1000x1000 --> 1000x1000x11
         # visuals = model.get_current_visuals()  # get image results
         img_path = model.get_image_paths()     # get image paths
         if i % 5 == 0:  # save images to an HTML file

@@ -3,9 +3,11 @@ from data.image_folder import make_dataset
 from PIL import Image
 import numpy as np
 import scipy
+import scipy.ndimage
 import torch
 import random
 import os
+import torchvision
 
 
 class SingleDataset(BaseDataset):
@@ -37,13 +39,13 @@ class SingleDataset(BaseDataset):
         """
         
         he_patch = np.load(self.A_paths[idx], mmap_mode='r')
-        
         factor = 4
         he_patch = scipy.ndimage.zoom(he_patch, (1. / factor, 1. / factor, 1), order=1)
-        
         he_patch = he_patch.transpose((2, 0, 1))
-        
         he_patch = torch.from_numpy(he_patch.astype(np.float32))
+        he_patch = torchvision.transforms.Pad(padding=12, padding_mode='reflect')(he_patch) # padding of total 24
+        
+        print(he_patch.shape, self.A_paths[idx])
             
         return {'A': he_patch, 'A_paths': self.A_paths[idx]}
 
