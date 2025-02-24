@@ -13,6 +13,7 @@ python train.py --dataroot path/to/parent/folder/of/he/and/imc \
                --n_epochs <number_of_epochs_with_initial_learning_rate> \
                --n_epochs_decay <number_of_epochs_to_decay_learning_rate_to_zero> \
                --gpu_ids 0
+               --output_nc 11
 ```
 
 ### Explanation:
@@ -29,6 +30,8 @@ python train.py --dataroot path/to/parent/folder/of/he/and/imc \
 - `--n_epochs`: Number of epochs with the initial learning rate.
 - `--n_epochs_decay`: Number of epochs to decay the learning rate linearly to zero.
 - `--gpu_ids`: Specifies which GPU(s) to use.
+- `--output_nc`: Output channel dimension.
+- `--channel`: For singleplex add this arg. E.g., 0 for the first channel of the IMC image.
 
 ### Input Requirements:
 - The model expects **H&E images** to be **1024x1024**.
@@ -42,6 +45,7 @@ python test.py --dataroot path/to/he/folder \
               --name cyclegan \
               --model test \
               --netG [resnet_9blocks | resnet_6blocks | unet_256 | unet_128]
+              --output_nc 11
 ```
 
 ### Explanation:
@@ -49,6 +53,7 @@ python test.py --dataroot path/to/he/folder \
 - `--name`: Name of the experiment (must match the training experiment name).
 - `--model`: Specifies that testing is being performed.
 - `--netG`: Specifies the generator architecture (must match the architecture used during training).
+- `--output_nc`: Output channel dimension.
 
 ### Testing Process:
 - The model expects **H&E images** to be **1024x1024** for testing.

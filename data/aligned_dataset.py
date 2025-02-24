@@ -69,7 +69,8 @@ class AlignedDataset(BaseDataset):
         # self.input_nc = self.opt.output_nc if self.opt.direction == 'BtoA' else self.opt.input_nc
         # self.output_nc = self.opt.input_nc if self.opt.direction == 'BtoA' else self.opt.output_nc
         self.input_nc = 3
-        self.output_nc = 11
+        self.output_nc = opt.output_nc
+        self.channel = opt.channel
         
         self.shared_transforms = shared_transforms
         
@@ -89,6 +90,9 @@ class AlignedDataset(BaseDataset):
         
         he_patch = np.load(self.A_paths[idx], mmap_mode='r')
         imc_patch = np.load(self.B_paths[idx], mmap_mode='r')
+        
+       if self.channel:
+            imc_patch = imc_patch[:, :, self.channel]
         
         factor = 4
         he_patch = scipy.ndimage.zoom(he_patch, (1. / factor, 1. / factor, 1), order=1)
