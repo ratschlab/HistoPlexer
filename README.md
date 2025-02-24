@@ -14,6 +14,7 @@ python train.py --dataroot path/to/parent/folder/of/he/and/imc \
                --n_epochs_decay <number_of_epochs_to_decay_learning_rate_to_zero> \
                --gpu_ids 0
                --output_nc 11
+               --seed 0
 ```
 
 ### Explanation:
@@ -32,6 +33,7 @@ python train.py --dataroot path/to/parent/folder/of/he/and/imc \
 - `--gpu_ids`: Specifies which GPU(s) to use.
 - `--output_nc`: Output channel dimension.
 - `--channel`: For singleplex add this arg. E.g., 0 for the first channel of the IMC image.
+- `--seed`: Random seed.
 
 ### Input Requirements:
 - The model expects **H&E images** to be **1024x1024**.
