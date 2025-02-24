@@ -43,6 +43,7 @@ python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
 - `markers`: List of all the markers in the data. The lenght should correspond to the channels in target folder. 
 - `cohort`: Name of the cohort eg tupro/shift/deepliif1 etc. It is used in the name of the experiment that will be saved in `bas_save_path`. 
 - `output_nc`: Correponds to the number of channels for data in `tgt_folder`. 
+- `use_high_res`: True by default and False if src and tgt are of same width and height. 
 - `channels`: Contains list of channel indices, used for running singleplex experiments. In config file if starts with underscore eg. `_channels` then it is ignored and all channels in `markers` are used. 
 - `method`: Name of the method used. eg `ours`, `pix2pix`, `pyramidp2p`. The default setting for the methods is contained in `sample_config_grid.json` file.
 - `device`: Cuda device to be used for the experiment. 
