@@ -35,7 +35,7 @@ To submit several jobs automatically using grid search hyperparameters, use:
 python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
 ```
 #### Configuration Settings
-#### Paths
+
 - `base_save_path`: Path where all experiments are saved. The experiment name .
 - `src_folder`: Path containing source data.
 - `tgt_folder`: Path containing target data.
