@@ -19,6 +19,35 @@ conda activate histoplexer
 ```
 ## Running the code 
 ### Training 
+For interactive jobs or to customize the submission script, use:
+
+```bash
+python -m bin.train --config_path src/config/sample_config.json
+
+```
+for running the training script.
+
+#### Automatic Job Submission with Grid Search Hyperparameters
+
+To submit several jobs automatically using grid search hyperparameters, use:
+
+```bash
+python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
+```
+#### Configuration Settings
+#### Paths
+- `base_save_path`: Path where all experiments are saved. The experiment name .
+- `src_folder`: Path containing source data.
+- `tgt_folder`: Path containing target data.
+- `split`: Directory of the data split csv file. First row has column names "train", "test", "valid". The remaining rows has 3 sample names for each of the train/test/valid splits.
+- `markers`: List of all the markers in the data. The lenght should correspond to the channels in target folder. 
+- `cohort`: Name of the cohort eg tupro/shift/deepliif1 etc. It is used in the name of the experiment that will be saved in `bas_save_path`. 
+- `output_nc`: Correponds to the number of channels for data in `tgt_folder`. 
+- `channels`: Contains list of channel indices, used for running singleplex experiments. In config file if starts with underscore eg. `_channels` then it is ignored and all channels in `markers` are used. 
+- `method`: Name of the method used. eg `ours`, `pix2pix`, `pyramidp2p`. The default setting for the methods is contained in `sample_config_grid.json` file.
+- `device`: Cuda device to be used for the experiment. 
+- `resume_path`: Path to the experiment from where the last saved checkpoint is used to resume the experiment. 
+
 ### Inference 
 ### Downstream tasks 
 
