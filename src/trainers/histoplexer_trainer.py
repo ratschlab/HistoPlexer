@@ -215,13 +215,13 @@ class HistoplexerTrainer(BaseTrainer):
             real_imcs.extend(self._resize_tensor(tgt, self.imc_sizes))
         real_imcs.append(tgt)
         
-        with torch.no_grad(): 
+        with torch.no_grad():
             fake_imcs = self.G(src)
             
         if self.config.p_dis_add_noise: 
             fake_imcs = [self._add_noise_prob(x, self.config.p_dis_add_noise) for x in fake_imcs]
             real_imcs = [self._add_noise_prob(x, self.config.p_dis_add_noise) for x in real_imcs]
-
+        
         fake_score_maps = self.D((src, fake_imcs))  
         real_score_maps = self.D((src, real_imcs))
         

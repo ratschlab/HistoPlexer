@@ -71,7 +71,6 @@ if __name__ == "__main__":
     
     config.save_path = os.path.join(config.base_save_path, config.experiment_name)
     print(f"save path: {config.save_path}")
-
     # create output folder if it doesn't exist yet
     Path(config.save_path).mkdir(parents=True, exist_ok=True)
     print(f"Results will be saved in {config.save_path}")

@@ -8,7 +8,7 @@ class Config:
             config_dict: dictionary of configuration parameters
         """
         # paths
-        self.base_save_path: str = config_dict.get("save_path", "/raid/sonali/project_mvs/nmi_results") # TODO where all results will be saved 
+        self.base_save_path: str = config_dict.get("base_save_path", "/raid/sonali/project_mvs/nmi_results") # TODO where all results will be saved 
         self.src_folder: str = config_dict.get("src_folder", "/raid/sonali/project_mvs/data/tupro/binary_he_rois") # TODO change as needed
         self.tgt_folder: str = config_dict.get("tgt_folder", "/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x") # TODO change as needed
         self.split: str = config_dict.get("split", "/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv") # TODO change as needed
