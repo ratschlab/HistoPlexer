@@ -71,6 +71,8 @@ class BaseDataset(Dataset):
         print(f"Load {self.mode} target data from: {tgt_folder}...")
         self.tgt_paths = sorted(make_dataset(tgt_folder, self.mode, self.split))
         
+        print(len(self.src_paths), self.src_paths, src_folder) # TODO
+        print(len(self.tgt_paths), self.tgt_paths, tgt_folder) # TODO
         assert len(self.src_paths) == len(self.tgt_paths), "Source and target data folders should contains the same number of images."
         for s, t in zip(self.src_paths, self.tgt_paths):
             if os.path.basename(s) != os.path.basename(t):
@@ -112,7 +114,8 @@ class TuProDataset(BaseDataset):
                  use_high_res: bool = True,
                  p_flip_jitter_hed_affine: list = [0.5, 0.0, 0.5, 0.5],
                  patch_size: int = 256,
-                 channels: list=None):
+                 channels: list=None, 
+                 cohort: str=None):
         """
         Initialize the TuProDataset class.
 
@@ -135,6 +138,7 @@ class TuProDataset(BaseDataset):
         self.p_affine = p_flip_jitter_hed_affine[3]
         self.patch_size = patch_size
         self.channels = channels
+        self.cohort = cohort
 
     def __len__(self) -> int:
         """
@@ -156,36 +160,43 @@ class TuProDataset(BaseDataset):
             dict: A dictionary containing the H&E patch, IMC patch, sample name, and offsets.
         """
         sample = os.path.basename(self.src_paths[idx]).split('.')[0]
-        he_roi = np.load(self.src_paths[idx], mmap_mode='r')
-        imc_roi = np.load(self.tgt_paths[idx], mmap_mode='r')
+        if self.cohort=='tupro': 
+            he_roi = np.load(self.src_paths[idx], mmap_mode='r')
+            imc_roi = np.load(self.tgt_paths[idx], mmap_mode='r')
+       
+            if self.channels:
+                imc_roi = imc_roi[:, :, self.channels]
         
-        if self.channels:
-            imc_roi = imc_roi[:, :, self.channels]
+            augment_x_offset = random.randint(0, 1000 - self.patch_size)
+            augment_y_offset = random.randint(0, 1000 - self.patch_size)
         
-        augment_x_offset = random.randint(0, 1000 - self.patch_size)
-        augment_y_offset = random.randint(0, 1000 - self.patch_size)
-        
-        imc_patch = imc_roi[augment_y_offset: augment_y_offset + self.patch_size,
-                        augment_x_offset: augment_x_offset + self.patch_size, :]
-        
-        factor = int(he_roi.shape[1] / imc_roi.shape[1]) # assume height == width
-        if not self.use_high_res:
-            he_roi = scipy.ndimage.zoom(he_roi, (1./factor, 1./factor, 1), order=1) # using bilinear interpolation for faster computation 
-            he_patch = he_roi[augment_y_offset: augment_y_offset + self.patch_size,
+            imc_patch = imc_roi[augment_y_offset: augment_y_offset + self.patch_size,
                             augment_x_offset: augment_x_offset + self.patch_size, :]
-        else:
-            he_patch = he_roi[factor * augment_y_offset: factor * augment_y_offset + factor * self.patch_size,
-                            factor * augment_x_offset: factor * augment_x_offset + factor * self.patch_size, :]
-            
+        
+            factor = int(he_roi.shape[1] / imc_roi.shape[1]) # assume height == width
+            if not self.use_high_res:
+                he_roi = scipy.ndimage.zoom(he_roi, (1./factor, 1./factor, 1), order=1) # using bilinear interpolation for faster computation 
+                he_patch = he_roi[augment_y_offset: augment_y_offset + self.patch_size,
+                                augment_x_offset: augment_x_offset + self.patch_size, :]
+            else:
+                he_patch = he_roi[factor * augment_y_offset: factor * augment_y_offset + factor * self.patch_size,
+                                factor * augment_x_offset: factor * augment_x_offset + factor * self.patch_size, :]
+        else: 
+            he_patch = np.load(self.src_paths[idx], mmap_mode='r')
+            imc_patch = np.load(self.tgt_paths[idx], mmap_mode='r')
+            if self.channels: 
+                imc_patch = imc_patch[:,:, self.channels]
+            augment_x_offset = 0
+            augment_y_offset = 0
         he_patch = he_patch.transpose((2, 0, 1)) # [H, W, C] --> [C, H, W]
         imc_patch = imc_patch.transpose((2, 0, 1)) # [H, W, C] --> [C, H, W]
-        
         he_patch = torch.from_numpy(he_patch.astype(np.float32)) # changed, removed copy false
         imc_patch = torch.from_numpy(imc_patch.astype(np.float32))
         
         he_patch, imc_patch = self.shared_transforms(he_patch, imc_patch, p=self.p_shared)
         he_patch = self.he_transforms(he_patch, p=[self.p_jitter, self.p_hed, self.p_affine])
         
+
         if not he_patch.shape[0]==3: 
             he_patch = torch.from_numpy(he_patch.transpose((2, 0, 1)))
         

@@ -98,22 +98,19 @@ class Discriminator(BaseModel):
         # processing through discriminator layers
         for i, module in enumerate(self.discriminator):
             imc_index = int((-1)*((i+1)//2)) -1
-            
             if (i==0 and self.use_high_res): 
                 x = torch.cat([x, ttf.resize(x_mem, x_mem.shape[-1] // (2**(i+2))), imc[imc_index]], dim=1)
-            
-            elif (i==0 and not self.use_high_res): 
-                x = torch.cat([ttf.resize(x_mem, x_mem.shape[-1] // (2**(i+2))), imc[imc_index]], dim=1)
-    
+            elif (i==0 and not self.use_high_res):
+                x = torch.cat([x_mem, imc[imc_index]], dim=1)
+            elif (i%2==0 and not self.use_high_res and self.use_multiscale):
+                x = torch.cat([x, ttf.resize(x_mem, x_mem.shape[-1] // (2**i)), imc[imc_index]], dim=1)
             elif (i%2==0 and self.use_multiscale):
                 x = torch.cat([x, ttf.resize(x_mem, x_mem.shape[-1] // (2**(i+2))), imc[imc_index]], dim=1)
 
             x = module(x)
-
             # generating multi-scale score maps
             if self.use_multiscale and (i%2==0) and i<(self.depth//2):
                 outputs.append(self.score_maps[int(i//2)](x))
 
         outputs.append(x)
-        
         return outputs

@@ -27,7 +27,8 @@ def main(args, device):
         use_high_res=args.use_high_res,
         p_flip_jitter_hed_affine=args.p_flip_jitter_hed_affine,
         patch_size=args.patch_size,
-        channels=args.channels
+        channels=args.channels, 
+        cohort=args.cohort
     )
 
     datasets = [train_dataset]
