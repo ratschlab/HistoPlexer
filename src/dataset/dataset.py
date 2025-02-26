@@ -6,6 +6,10 @@ import torch
 import random
 import os
 import json
+import math
+import torchvision
+from torchvision import transforms as T
+
 
 from src.utils.data.transforms import HE_transforms, shared_transforms
 
@@ -209,4 +213,108 @@ class TuProDataset(BaseDataset):
                 'imc_path': self.tgt_paths[idx], 
                 'idx': idx
                } 
-            
+
+class InferenceDataset(Dataset):
+    def __init__(self, input_paths):
+        """
+        Args:
+            input_paths (list): List of paths to input .npy files.
+        """
+        self.input_paths = input_paths
+
+    def __len__(self):
+        return len(self.input_paths)
+
+    def __getitem__(self, idx):
+        img_name = self.input_paths[idx].split('/')[-1].split('.')[0]
+        input_img = np.load(self.input_paths[idx], mmap_mode='r') # what if diff file format? 
+        input_shape = int(input_img.shape[0]) # used for cropping later
+        input_img = self.transform_np_to_tensor(input_img)
+        input_img = self.pad_img(input_img, input_shape)
+        return input_img, img_name, input_shape
+
+    @staticmethod
+    def transform_np_to_tensor(np_img):
+        ''' Construct torch tensor from a numpy array
+        np_img: numpy array of shape [H,W,C]
+        returns a torch tensor with shape [C,H,W]
+        '''
+        torch_img = np_img.transpose((2, 0, 1))
+        torch_img = np.ascontiguousarray(torch_img)
+        torch_img = torch.from_numpy(torch_img).float()
+        return torch_img
+    
+    @staticmethod
+    def pad_img(torch_img, input_shape=4000):
+        ''' Pad image to make it compatible wth the model (eg /2)
+        torch_img: torch tensor (expects a squared image)
+        input_shape: shape ([0]) of the input H&E image
+        returns a padded image (torch tensor)
+        '''
+        padding = (2**(round(math.log(input_shape, 2))) - input_shape)//2
+        torch_img = torchvision.transforms.Pad(padding, padding_mode='reflect')(torch_img)
+        return torch_img
+    
+class EvalDataset(Dataset):
+    def __init__(self, tgt_pred_paths, tgt_gt_paths, num_channels=11, data_range=(0, 1), convert_to_rgb=False):
+
+        super(EvalDataset, self).__init__()
+        self.tgt_gt_paths = tgt_gt_paths
+        self.tgt_pred_paths = tgt_pred_paths
+        self.data_range = data_range
+        self.num_channels = num_channels
+        self.convert_to_rgb = convert_to_rgb
+        self.transform = T.Compose([
+            T.Lambda(lambda x: self.channel_normalize(x))
+        ])
+        
+        # assert that the filenames are the same in both folders
+        for s, t in zip(self.tgt_pred_paths, self.tgt_gt_paths):
+            if os.path.basename(s) != os.path.basename(t):
+                raise ValueError(f"File names do not match: {s} and {t}")
+        
+    def __len__(self):
+        return len(self.tgt_pred_paths)
+    
+    def __getitem__(self, idx):  
+
+        imc_pred_path = self.tgt_pred_paths[idx]
+        imc_gt_path = self.tgt_gt_paths[idx]
+        sample = imc_pred_path.split('/')[-1].split('.npy')[0]
+        imc_pred = np.load(imc_pred_path)
+        imc_gt = np.load(imc_gt_path)
+
+        # channel first 
+        imc_pred = torch.from_numpy(imc_pred).permute(2, 0, 1)
+        imc_gt = torch.from_numpy(imc_gt).permute(2, 0, 1)
+        # normalise per channel
+        imc_pred = self.transform(imc_pred)
+        imc_gt = self.transform(imc_gt)
+
+        # channel last 
+        if self.convert_to_rgb:
+            imc_pred = self.to_rgb(imc_pred)
+            imc_gt = self.to_rgb(imc_gt)
+
+        return {'sample': sample, 
+                'imc_gt_path': imc_gt_path, 
+                'imc_pred_path': imc_pred_path, 
+                'imc_pred': imc_pred, 
+                'imc_gt': imc_gt}
+    
+    def channel_normalize(self, x):
+        # Normalize each channel individually to the range [0, 1]
+        for i in range(self.num_channels):
+            min_value = torch.min(x[i])
+            max_value = torch.max(x[i])
+            denominator = max_value - min_value
+            denominator[denominator == 0] = 1
+            x[i] = (x[i] - min_value) / denominator
+        return x
+    
+    @staticmethod
+    def to_rgb(x):
+        x = x.unsqueeze(1)  # Shape: (10, 1, 1000, 1000)
+        # Repeat the grayscale channels along the RGB channels
+        x = x.repeat(1, 3, 1, 1)  # Shape: (10, 3, 1000, 1000)
+        return x
