@@ -21,8 +21,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Configurations for HistoPlexer inference")
     parser.add_argument("--checkpoint_path", type=str, required=True, help="Path to checkpoint file")
-    parser.add_argument("--src_folder", type=str, required=False, default=None, help="Path to source folder")
-    parser.add_argument("--tgt_folder", type=str, required=False, default=None, help="Path to target folder")
+    parser.add_argument("--src_folder", type=str, required=False, default=None, help="Path to source folder HE")
+    parser.add_argument("--tgt_folder", type=str, required=False, default=None, help="Path to target folder GT IMC")
     parser.add_argument("--mode", type=str, required=False, default='test', help="which data split to use")
     parser.add_argument("--device", type=str, required=False, default='cuda:4', help="device to use")
     parser.add_argument("--measure_metrics", type=str,required=False, default=True, help="If just inference or also evaluation using metrics")
