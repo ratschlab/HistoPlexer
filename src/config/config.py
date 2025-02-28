@@ -25,7 +25,9 @@ class Config:
         self.channels: list = config_dict.get("channels", None) # provide list of channels to use, None for all
         self.cohort: str = config_dict.get("cohort", "tupro") # TODO change as needed -- used for naming experiment
         self.val: bool = config_dict.get("val", False) # TODO change to True is using validation set
-
+        self.use_fm_features: bool = config_dict.get("use_fm_features", False) # TODO change as needed
+        self.fm_features_path: str = config_dict.get("fm_features_path", None) # TODO change as needed
+        
         # model 
         self.input_nc: int = config_dict.get("input_nc", 3) 
         self.output_nc: int = config_dict.get("output_nc", 11) # TODO change based on markers chosen 

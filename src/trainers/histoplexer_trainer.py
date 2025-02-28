@@ -126,19 +126,20 @@ class HistoplexerTrainer(BaseTrainer):
             depth=self.config.depth,
             encoder_padding=self.config.encoder_padding,
             decoder_padding=self.config.decoder_padding, 
-            device=self.device
+            device=self.device, 
+            extra_feature_size=0 
         )
         G.init_weights(init_type=self.config.encoder_init_type) # added init of weights
         return G
 
 
-    def _G_step(self, step: int, src: torch.Tensor, tgt: torch.Tensor):
+    def _G_step(self, step: int, src: torch.Tensor, tgt: torch.Tensor, src_feats: torch.Tensor):
         self.G.requires_grad(True)
         self.D.requires_grad(False)
         self.opt_G.zero_grad(set_to_none=True)
         
         real_imc = tgt
-        fake_imcs = self.G(src)
+        fake_imcs = self.G(src, src_feats)
 
         if self.config.use_gp: # changed
             loss_L1 = self.config.w_GP * self.L1loss(fake_imcs[-1], real_imc)
@@ -203,7 +204,7 @@ class HistoplexerTrainer(BaseTrainer):
             "loss_ASP": loss_ASP.item() if loss_ASP != 0.0 else 0.0,
         }
 
-    def _D_step(self, step: int, src: torch.Tensor, tgt: torch.Tensor):
+    def _D_step(self, step: int, src: torch.Tensor, tgt: torch.Tensor, src_feats: torch.Tensor):
         self.G.requires_grad(False) 
         self.D.requires_grad(True) 
         self.opt_D.zero_grad(set_to_none=True) 
@@ -216,7 +217,7 @@ class HistoplexerTrainer(BaseTrainer):
         real_imcs.append(tgt)
         
         with torch.no_grad():
-            fake_imcs = self.G(src)
+            fake_imcs = self.G(src, src_feats)
             
         if self.config.p_dis_add_noise: 
             fake_imcs = [self._add_noise_prob(x, self.config.p_dis_add_noise) for x in fake_imcs]
@@ -265,7 +266,12 @@ class HistoplexerTrainer(BaseTrainer):
             he = batch["he_patch"].to(self.device) 
             imc = batch["imc_patch"].to(self.device) 
             
-            losses_D, fake_score_means = self._D_step(step, he, imc) 
+            if "fm_features" not in batch:
+                feats_uni = None
+            else:
+                feats_uni = batch["fm_features"].to(self.device)
+            
+            losses_D, fake_score_means = self._D_step(step, he, imc, feats_uni) 
             if step_D % self.config.log_interval == 0:
                 self.logger.run(func_name="log_scalars", metric_dict=losses_D, step=step_D)
             step_D += 1
@@ -278,7 +284,7 @@ class HistoplexerTrainer(BaseTrainer):
             )
 
             if update_G:
-                losses_G = self._G_step(step, he, imc)
+                losses_G = self._G_step(step, he, imc, feats_uni)
                 if step_G % self.config.log_interval == 0:  
                     self.logger.run(func_name="log_scalars", metric_dict=losses_G, step=step_G)
                 step_G += 1
@@ -288,7 +294,7 @@ class HistoplexerTrainer(BaseTrainer):
                 self._log_sample(step=step, 
                                  src=batch_val["he_patch"].to(self.device), 
                                  tgt=batch_val["he_patch"].to(self.device), 
-                                 sample=batch_val["sample"])
+                                 sample=batch_val["sample"], src_feats=batch_val["fm_features"].to(self.device))
             
             
             if (step+1) % self.config.save_interval == 0:
@@ -302,12 +308,12 @@ class HistoplexerTrainer(BaseTrainer):
         print("Saving finished!")
         self.logger.close() # added
 
-    def _log_sample(self, step: int, src: torch.Tensor, tgt: torch.Tensor, sample: str):
+    def _log_sample(self, step: int, src: torch.Tensor, tgt: torch.Tensor, sample: str, src_feats: torch.Tensor):
         self.G.eval() # set G to eval mode
         log_idx = random.randint(0, len(src) - 1) # only log one sample within the batch
         with torch.no_grad():
-            imc_curr = self.G(src)[-1][log_idx]
-            imc_ema = self.G_ema(src)[-1][log_idx]
+            imc_curr = self.G(src, src_feats)[-1][log_idx]
+            imc_ema = self.G_ema(src, src_feats)[-1][log_idx]
             imc_real = tgt[log_idx]
             he = src[log_idx]
             sample = sample[log_idx]
