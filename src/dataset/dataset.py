@@ -9,6 +9,7 @@ import json
 import math
 import torchvision
 from torchvision import transforms as T
+from torchvision import transforms
 
 
 from src.utils.data.transforms import HE_transforms, shared_transforms
@@ -318,3 +319,36 @@ class EvalDataset(Dataset):
         # Repeat the grayscale channels along the RGB channels
         x = x.repeat(1, 3, 1, 1)  # Shape: (10, 3, 1000, 1000)
         return x
+
+
+class UniDataset(Dataset):
+    '''
+    Dataset for getting embeddings from uni model
+    Args:
+        patches_paths (list): List of paths to input .npy files.
+        
+    '''
+    def __init__(self, patches_paths,img_size=224):  
+        super(UniDataset, self).__init__()
+        self.patches_paths = patches_paths
+
+        # Transformations using PIL
+        self.transform = transforms.Compose([
+            transforms.ToPILImage(),  # Convert NumPy (H, W, C) array to PIL Image
+            transforms.Resize((img_size, img_size)),  # Resize to target size (224x224)
+            transforms.ToTensor(),  # Convert PIL Image to Tensor (CHW)
+            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        ])
+        
+    def __len__(self):
+        return len(self.patches_paths)
+    
+    def __getitem__(self, idx):  
+
+        patch_path = self.patches_paths[idx]
+        sample = patch_path.split('/')[-1].split('.npy')[0]
+        img = np.load(patch_path)
+        img = (img*255).astype(np.uint8)
+        img = self.transform(img)
+        return {'sample': sample, 
+                'img': img}        
