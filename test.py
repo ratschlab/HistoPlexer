@@ -77,7 +77,9 @@ if __name__ == '__main__':
         fake = fake[:, :, 12:-12, 12:-12] # crop 1024 to 1000: 1x11x1024x1024 --> 1x11x1000x1000
         fake = fake.squeeze(0).permute(1, 2, 0).cpu().numpy() # 1x11x1000x1000 --> 1000x1000x11
         # visuals = model.get_current_visuals()  # get image results
-        img_path = model.get_image_paths()     # get image paths
+        img_path = model.get_image_paths()
+        #print(fake.shape, img_path)
+        # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
         # save the generated numpy array with the same basename 
