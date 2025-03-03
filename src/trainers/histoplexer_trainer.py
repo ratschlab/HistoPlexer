@@ -127,7 +127,7 @@ class HistoplexerTrainer(BaseTrainer):
             encoder_padding=self.config.encoder_padding,
             decoder_padding=self.config.decoder_padding, 
             device=self.device, 
-            extra_feature_size=0 
+            extra_feature_size=self.config.fm_feature_size 
         )
         G.init_weights(init_type=self.config.encoder_init_type) # added init of weights
         return G

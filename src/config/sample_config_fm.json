@@ -14,5 +14,6 @@
     "seed": 2, 
     "method": "ours-FM",
     "use_fm_features": true, 
-    "fm_features_path": "/raid/sonali/project_mvs/data/tupro/patches/embeddings_he.h5"
+    "fm_features_path": "/raid/sonali/project_mvs/data/tupro/patches/embeddings_he.h5", 
+    "fm_feature_size": 1024
 }
