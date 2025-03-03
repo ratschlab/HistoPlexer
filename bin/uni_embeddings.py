@@ -9,22 +9,21 @@ import h5py
 import argparse
 import tqdm
 
-
-# pass arguments using argparser
-# args = parser.parse_args()
-# print(args)
-
+# python -m bin.uni_embeddings --patches_dir=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test --device=cuda:0
+# parser
 parser = argparse.ArgumentParser(description="Configurations for getting features embeddings from uni model")
 parser.add_argument("--weights_path", type=str, required=False, default='/home/sonali/raid_st/foundation_models/uni_v1/pytorch_model.bin',help="Path to uni checkpoint file")
 parser.add_argument("--patches_dir", type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/patches/binary_he_patchs', help="Path to he numpy files")
 parser.add_argument("--device", type=str,required=False, default='cuda:0', help="device used for running the model")
+
 args = parser.parse_args()
     
 
 device = args.device
 patches_dir = args.patches_dir
 base_path = os.path.dirname(patches_dir)
-embed_path = os.path.join(base_path, 'embeddings_he.h5')
+embed_path = os.path.join(base_path, 'embeddings_'+ os.path.basename(patches_dir) +'.h5')
+print(embed_path)
 
 # loading uni models
 weights_path = args.weights_path
@@ -62,6 +61,6 @@ with h5py.File(embed_path, "w") as h5_dict:
             h5_dict.update(batch_data)  # Write batch in one go
             
 # # example on how to read embeddings         
-# h5_dict = h5py.File('embeddings_he.h5', "r") 
-# feature= h5_dict[sample_name][:]  # pass sample name
+# h5_dict = h5py.File('embeddings_binary_he_rois_test.h5', "r") 
+# feature= h5_dict['MYNELIC_F3'][:]  # pass sample name
 # print(feature.shape) 
