@@ -90,10 +90,10 @@ class AlignedDataset(BaseDataset):
         
         he_patch = np.load(self.A_paths[idx], mmap_mode='r')
         imc_patch = np.load(self.B_paths[idx], mmap_mode='r')
-        
-       if self.channel:
-            imc_patch = imc_patch[:, :, self.channel]
-        
+
+        if self.channel != None:
+            imc_patch = np.expand_dims(imc_patch[:, :, self.channel], axis = 2)
+       
         factor = 4
         he_patch = scipy.ndimage.zoom(he_patch, (1. / factor, 1. / factor, 1), order=1)
         
@@ -107,7 +107,6 @@ class AlignedDataset(BaseDataset):
         
         if he_patch.shape[0] != 3:
             he_patch = torch.from_numpy(he_patch.transpose((2, 0, 1)))
-            
         return {'A': he_patch, 'B': imc_patch, 
                 'A_paths': self.A_paths[idx], 'B_paths': self.B_paths[idx]}
         
