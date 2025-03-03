@@ -26,6 +26,7 @@ from util.visualizer import Visualizer
 import numpy as np
 import random
 import torch
+from tqdm import tqdm
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     torch.manual_seed(random_seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(random_seed)
-        
+       
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     dataset_size = len(dataset)    # get the number of images in the dataset.
     print('The number of training images = %d' % dataset_size)
@@ -50,7 +51,8 @@ if __name__ == '__main__':
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
         #visualizer.reset()              # reset the visualizer: make sure it saves the results to HTML at least once every epoch
         model.update_learning_rate()    # update learning rates in the beginning of every epoch.
-        for i, data in enumerate(dataset):  # inner loop within one epoch
+        for i, data in tqdm(enumerate(dataset)):
+        #for i, data in enumerate(dataset):  # inner loop within one epoch
             iter_start_time = time.time()  # timer for computation per iteration
             if total_iters % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
