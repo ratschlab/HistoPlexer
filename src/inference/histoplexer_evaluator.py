@@ -27,60 +27,80 @@ class HistoplexerEval():
         self.checkpoint_path = args.checkpoint_path
         self.device = args.device
 
-        # getting config file path from experiment 
-        config_path = os.path.dirname(self.checkpoint_path) + '/config.json'        
-        with open(config_path, "r") as f:
-            self.config = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
-                
-        # path for he rois
-        src_folder = self.config.src_folder if not self.args.src_folder else self.args.src_folder
-        self.src_paths = sorted(make_dataset(src_folder, args.mode, self.config.split))
+        if args.get_predictions:
+            # getting config file path from experiment 
+            config_path = os.path.dirname(self.checkpoint_path) + '/config.json'        
+            with open(config_path, "r") as f:
+                self.config = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
+                    
+            # path for he rois
+            src_folder = self.config.src_folder if not self.args.src_folder else self.args.src_folder
+            self.src_paths = sorted(make_dataset(src_folder, args.mode, self.config.split))
 
-        print(self.src_paths[0:2], len(self.src_paths))
+            print(self.src_paths[0:2], len(self.src_paths))
 
-        # initialize model in cpu
-        self.model = unet_translator(
-            input_nc=self.config.input_nc,
-            output_nc=self.config.output_nc,
-            use_high_res=self.config.use_high_res,
-            use_multiscale=self.config.use_multiscale,
-            ngf=self.config.ngf,
-            depth=self.config.depth,
-            encoder_padding=self.config.encoder_padding,
-            decoder_padding=self.config.decoder_padding, 
-            device="cpu"
-        )
+            # initialize model in cpu
+            self.model = unet_translator(
+                input_nc=self.config.input_nc,
+                output_nc=self.config.output_nc,
+                use_high_res=self.config.use_high_res,
+                use_multiscale=self.config.use_multiscale,
+                ngf=self.config.ngf,
+                depth=self.config.depth,
+                encoder_padding=self.config.encoder_padding,
+                decoder_padding=self.config.decoder_padding, 
+                device="cpu"
+            )
 
-        # load model weights all in cpu
-        self.checkpoint_name = os.path.basename(self.checkpoint_path).split('-')[1].split('.')[0]
-        print(f"Checkpoint name: {self.checkpoint_name}")
-        checkpoint = torch.load(self.checkpoint_path)
-        self.model.load_state_dict(checkpoint['trans_ema_state_dict']) # trans_state_dict
-        self.model.to(self.device)
-        self.model.eval()
-        print("Model loaded!")
+            # load model weights all in cpu
+            self.checkpoint_name = os.path.basename(self.checkpoint_path).split('-')[1].split('.')[0]
+            print(f"Checkpoint name: {self.checkpoint_name}")
+            checkpoint = torch.load(self.checkpoint_path)
+            self.model.load_state_dict(checkpoint['trans_ema_state_dict']) # trans_state_dict
+            self.model.to(self.device)
+            self.model.eval()
+            print("Model loaded!")
 
-        # save path for predictions 
-        self.save_path = os.path.join(os.path.dirname(self.checkpoint_path), args.mode + '_images', self.checkpoint_name)
-        os.makedirs(self.save_path, exist_ok=True)
-        print(f"Save path: {self.save_path}")
+            # save path for predictions 
+            self.save_path = os.path.join(os.path.dirname(self.checkpoint_path), args.mode + '_images', self.checkpoint_name)
+            os.makedirs(self.save_path, exist_ok=True)
+            print(f"Save path: {self.save_path}")
 
-        # run inference and save predictions 
-        self.test_dataset = InferenceDataset(input_paths=self.src_paths)
-        print("Test dataset created of size ", len(self.test_dataset))
-        self.test_loader = DataLoader(self.test_dataset,
-                                      batch_size=1, 
-                                      shuffle=False,
-                                      pin_memory=True, 
-                                      num_workers=1, 
-                                      drop_last=False)
-        # if number of npy files in save_path is equal to number of src_paths, then skip inference
-        if not len(glob.glob(self.save_path + '/*npy')) == len(self.src_paths):
-            print("Running inference!")
-            self.run_inference()
-        else:
-            print("Inference already done!")
+            # run inference and save predictions 
+            self.test_dataset = InferenceDataset(input_paths=self.src_paths)
+            print("Test dataset created of size ", len(self.test_dataset))
+            self.test_loader = DataLoader(self.test_dataset,
+                                        batch_size=1, 
+                                        shuffle=False,
+                                        pin_memory=True, 
+                                        num_workers=1, 
+                                        drop_last=False)
+            # if number of npy files in save_path is equal to number of src_paths, then skip inference
+            if not len(glob.glob(self.save_path + '/*npy')) == len(self.src_paths):
+                print("Running inference!")
+                self.run_inference()
+            else:
+                print("Inference already done!")
+            
+            # needed for eval once inference done
+            self.markers = self.config.markers
+            self.save_path_eval = os.path.join(os.path.dirname(self.checkpoint_path), self.args.mode + '_eval', self.checkpoint_name)
+            self.tgt_folder = self.config.tgt_folder if not self.args.tgt_folder else self.args.tgt_folder
+            self.split = self.config.split
+            self.submission_id = self.checkpoint_path.split('/')[-2]
 
+        else: # if only eval is done
+            print("No inference needed!")
+            self.save_path = args.save_path
+            self.markers = args.markers
+            print("Markers: ", self.markers)
+            self.save_path_eval = os.path.join(os.path.dirname(self.save_path), self.args.mode + '_eval')
+            print("save_path_eval: ", self.save_path_eval)
+            self.tgt_folder = self.args.tgt_folder
+            print("tgt_folder: ", self.tgt_folder)
+            self.split = self.args.split
+            self.submission_id = self.args.save_path.split('/')[-2]
+            
         # get performance using eval metrics ---
         if args.measure_metrics:
             print("Evaluating metrics!")            
@@ -115,8 +135,7 @@ class HistoplexerEval():
         # TODO how to agg across markers and exps 
 
         # GT IMC 
-        tgt_folder = self.config.tgt_folder if not self.args.tgt_folder else self.args.tgt_folder
-        tgt_gt_paths = sorted(make_dataset(tgt_folder, self.args.mode, self.config.split))
+        tgt_gt_paths = sorted(make_dataset(self.tgt_folder, self.args.mode, self.split))
         print(tgt_gt_paths[0:2], len(tgt_gt_paths))
         
         # pred IMC
@@ -129,7 +148,7 @@ class HistoplexerEval():
         rmse = RootMeanSquaredErrorUsingSlidingWindow(window_size=8).to(self.device)
         
         # dataset for evaluation
-        eval_dataset = EvalDataset(tgt_pred_paths, tgt_gt_paths, len(self.config.markers))
+        eval_dataset = EvalDataset(tgt_pred_paths, tgt_gt_paths, len(self.markers))
         print("Eval dataset created of size ", len(eval_dataset))
         eval_loader = DataLoader(eval_dataset,
                                 batch_size=8, 
@@ -138,10 +157,10 @@ class HistoplexerEval():
                                 num_workers=8, 
                                 drop_last=False)
         
-        markers = self.config.markers
-        msssim_dict = {marker: [] for marker in markers}
-        psnr_dict = {marker: [] for marker in markers}
-        rmse_dict = {marker: [] for marker in markers}
+        print('markers: ', self.markers)
+        msssim_dict = {marker: [] for marker in self.markers}
+        psnr_dict = {marker: [] for marker in self.markers}
+        rmse_dict = {marker: [] for marker in self.markers}
 
         all_metrics_list = []
         
@@ -167,25 +186,24 @@ class HistoplexerEval():
                     # TODO: think if need to apply gaussian blurr or downsample imgs to compute rmse
                     rmse_score = round(rmse(imc_pred__, imc_gt__).item(), 4)
                     
-                    print(markers[i], sample[j], ms_ssim_score, psnr_score, rmse_score)
-                    all_metrics_list.append([markers[i], sample[j], ms_ssim_score, psnr_score, rmse_score])
+                    print(self.markers[i], sample[j], ms_ssim_score, psnr_score, rmse_score)
+                    all_metrics_list.append([self.markers[i], sample[j], ms_ssim_score, psnr_score, rmse_score])
 
                     # used later to get avg metrics over samples
-                    msssim_dict[markers[i]].append(ms_ssim_score)
-                    psnr_dict[markers[i]].append(psnr_score)
-                    rmse_dict[markers[i]].append(rmse_score)
+                    msssim_dict[self.markers[i]].append(ms_ssim_score)
+                    psnr_dict[self.markers[i]].append(psnr_score)
+                    rmse_dict[self.markers[i]].append(rmse_score)
 
         # save path for eval 
-        save_path_eval = os.path.join(os.path.dirname(self.checkpoint_path), self.args.mode + '_eval', self.checkpoint_name)
-        os.makedirs(save_path_eval, exist_ok=True)
-        print(f"Save path eval: {save_path_eval}")
+        os.makedirs(self.save_path_eval, exist_ok=True)
+        print(f"Save path eval: {self.save_path_eval}")
                             
         # saving merics per sample per marker
         df_per_sample = pd.DataFrame(all_metrics_list)
         df_per_sample.columns = ['Marker', 'sample', 'MSSSIM', 'PSNR', 'RMSE']
         df_per_sample['dataset'] = self.args.mode
-        df_per_sample['submission_id'] = self.checkpoint_path.split('/')[-2]
-        df_per_sample.to_csv(os.path.join(save_path_eval, 'all_metrics_per_sample.csv'),  index=False) 
+        df_per_sample['submission_id'] = self.submission_id
+        df_per_sample.to_csv(os.path.join(self.save_path_eval, 'all_metrics_per_sample.csv'),  index=False) 
 
         # aggregate over samples metrics to pandas df 
         agg_msssim = {marker: round(sum(values)/len(values), 4) if values else 0 for marker, values in msssim_dict.items()}
@@ -196,13 +214,6 @@ class HistoplexerEval():
         df_agg = pd.DataFrame(list_of_dicts, index=['MSSSIM', 'PSNR', 'RMSE']).T
         df_agg = df_agg.reset_index().rename(columns={'index': 'Marker'})
         df_agg['dataset'] = self.args.mode
-        df_agg['submission_id'] = self.args.checkpoint_path.split('/')[-2]
-        df_agg.to_csv(os.path.join(save_path_eval, 'all_metrics_agg.csv'),  index=False) 
+        df_agg['submission_id'] = self.submission_id
+        df_agg.to_csv(os.path.join(self.save_path_eval, 'all_metrics_agg.csv'),  index=False) 
         print("Metrics saved!")
-
-# TODOS
-# one number of an exp 
-# flag to rewrite pred or not 
-# flag to run metrics or not
-# introduce more metrics 
-# optimize code 
