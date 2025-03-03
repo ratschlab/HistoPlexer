@@ -119,6 +119,19 @@ class BaseOptions():
         opt = self.gather_options()
         opt.isTrain = self.isTrain   # train or test
 
+        # getting marker name
+        marker = 'all'
+        print(opt.channel)
+        if opt.channel != None:
+            markers = ["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"]
+            marker = markers[opt.channel]
+            print(marker)
+            opt.output_nc = 1
+        print(opt.name)
+        if opt.isTrain: 
+            opt.name = opt.name + '_channels-' + marker + '_seed-' + str(opt.seed)
+        print(opt.name, opt.output_nc)
+
         # process opt.suffix
         if opt.suffix:
             suffix = ('_' + opt.suffix.format(**vars(opt))) if opt.suffix != '' else ''
