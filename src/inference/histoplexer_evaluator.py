@@ -49,7 +49,7 @@ class HistoplexerEval():
                 encoder_padding=self.config.encoder_padding,
                 decoder_padding=self.config.decoder_padding, 
                 device="cpu", 
-                extra_feature_size=1024, 
+                extra_feature_size=self.config.fm_feature_size
             )
             print("Model created!")
             print(self.model)
