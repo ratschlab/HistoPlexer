@@ -9,9 +9,10 @@
     "w_ASP": 1.0,
     "batch_size": 16,
     "output_nc": 11, 
-    "device": "cuda:1", 
+    "device": "cuda:6", 
     "_channels": [1], 
-    "seed": 0, 
+    "seed": 96, 
     "method": "ours", 
-    "_resume_path": "/raid/sonali/project_mvs/dummy/tupro_ours_channels-all_seed-0"
+    "_resume_path": "/raid/sonali/project_mvs/dummy/tupro_ours_channels-all_seed-0", 
+    "base_save_path": "/raid/sonali/project_mvs/nmi_results/ours"
 }
