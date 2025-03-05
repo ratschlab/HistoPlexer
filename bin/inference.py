@@ -28,7 +28,13 @@ def main(args):
 #                         --save_path=/raid/sonali/project_mvs/nmi_results/cycleGAN/tupro_cyclegan_channels-all_seed-0/results \
 #                         --split='/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv'
 
-# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_495000.pt --get_predictions
+# For FM 
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_150000.pt \
+#                         --get_predictions \
+#                         --device=cuda:4 \
+#                         --src_folder=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test \
+#                         --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x 
+                        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Configurations for HistoPlexer inference")
     parser.add_argument("--checkpoint_path", type=str, required=False, default=None, help="Path to checkpoint file")
