@@ -18,7 +18,7 @@ def main(args):
     HistoplexerEval(args=args)
 
 # # if running inference and eval for tupro/deepliif data: config from exp is used 
-# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro_ours_channels-all_seed-0/checkpoint-step_495000.pt 
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro_ours_channels-all_seed-0/checkpoint-step_495000.pt \
 #                         --device=cuda:4 --get_predictions
 
 # # if running eval only for cyclegan exps, inference is done using cyclegan script and exps doesn't save configs in the same format, therefore done in two steps                    
