@@ -35,11 +35,10 @@ class HistoplexerEval():
                     
             # path for he rois
             src_folder = self.config.src_folder if not self.args.src_folder else self.args.src_folder
+            print('src_folder: ', self.args.src_folder, self.config.src_folder)  
             self.src_paths = sorted(make_dataset(src_folder, args.mode, self.config.split))
-
             print(self.src_paths[0:2], len(self.src_paths))
-
-            # initialize model in cpu
+            
             self.model = unet_translator(
                 input_nc=self.config.input_nc,
                 output_nc=self.config.output_nc,
@@ -49,8 +48,11 @@ class HistoplexerEval():
                 depth=self.config.depth,
                 encoder_padding=self.config.encoder_padding,
                 decoder_padding=self.config.decoder_padding, 
-                device="cpu"
+                device="cpu", 
+                extra_feature_size=self.config.fm_feature_size
             )
+            print("Model created!")
+            print(self.model)
 
             # load model weights all in cpu
             self.checkpoint_name = os.path.basename(self.checkpoint_path).split('-')[1].split('.')[0]

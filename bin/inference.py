@@ -18,7 +18,7 @@ def main(args):
     HistoplexerEval(args=args)
 
 # # if running inference and eval for tupro/deepliif data: config from exp is used 
-# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro_ours_channels-all_seed-0/checkpoint-step_495000.pt 
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro_ours_channels-all_seed-0/checkpoint-step_495000.pt \
 #                         --device=cuda:4 --get_predictions
 
 # # if running eval only for cyclegan exps, inference is done using cyclegan script and exps doesn't save configs in the same format, therefore done in two steps                    
@@ -27,6 +27,13 @@ def main(args):
 #                         --markers CD16 CD20 CD3 CD31 CD8a gp100 HLA-ABC HLA-DR MelanA S100 SOX10 \
 #                         --save_path=/raid/sonali/project_mvs/nmi_results/cycleGAN/tupro_cyclegan_channels-all_seed-0/results \
 #                         --split='/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv'
+
+# For FM 
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_150000.pt \
+#                         --get_predictions \
+#                         --device=cuda:4 \
+#                         --src_folder=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test \
+#                         --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x 
                         
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Configurations for HistoPlexer inference")
@@ -35,6 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--tgt_folder", type=str, required=False, default=None, help="Path to target folder GT IMC")
     parser.add_argument("--mode", type=str, required=False, default='test', help="which data split to use")
     parser.add_argument("--device", type=str, required=False, default='cuda:4', help="device to use")
+    
     parser.add_argument("--measure_metrics", type=str, required=False, default=True, help="If perform evaluation")
     parser.add_argument("--save_path", type=str, required=False, default=None, help="Path to saved predictions")
     parser.add_argument("--markers", nargs="+", default=[], help="List of markers (optional), useful if running only evaluation")   

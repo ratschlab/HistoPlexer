@@ -9,9 +9,17 @@ import json
 import math
 import torchvision
 from torchvision import transforms as T
-
-
+from torchvision import transforms
+import h5py
+import re
 from src.utils.data.transforms import HE_transforms, shared_transforms
+
+def is_close_match(a, b):
+    for word in a:
+        pattern = re.compile(rf"^{word}[\d_]*$", re.IGNORECASE)  # Matches word followed by optional digits or '_'
+        if pattern.match(b):
+            return True
+    return False
 
 IMG_EXTENSIONS = [
     '.npy', '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -33,7 +41,9 @@ def make_dataset(dir, mode, split_csv, max_dataset_size=float("inf")):
     images = []
     for root, _, fnames in sorted(os.walk(dir)):
         for fname in fnames:
-            if is_image_file(fname) and os.path.splitext(fname)[0] in allowed_filenames:
+            
+            if is_image_file(fname) and is_close_match(allowed_filenames, os.path.splitext(fname)[0]):
+            # if is_image_file(fname) and os.path.splitext(fname)[0] in allowed_filenames:
                 path = os.path.join(root, fname)
                 images.append(path)
 
@@ -75,8 +85,8 @@ class BaseDataset(Dataset):
         print(f"Load {self.mode} target data from: {tgt_folder}...")
         self.tgt_paths = sorted(make_dataset(tgt_folder, self.mode, self.split))
         
-        print(len(self.src_paths), self.src_paths, src_folder) # TODO
-        print(len(self.tgt_paths), self.tgt_paths, tgt_folder) # TODO
+        print(len(self.src_paths), self.src_paths[0], src_folder) 
+        print(len(self.tgt_paths), self.tgt_paths[0], tgt_folder) 
         assert len(self.src_paths) == len(self.tgt_paths), "Source and target data folders should contains the same number of images."
         for s, t in zip(self.src_paths, self.tgt_paths):
             if os.path.basename(s) != os.path.basename(t):
@@ -119,7 +129,10 @@ class TuProDataset(BaseDataset):
                  p_flip_jitter_hed_affine: list = [0.5, 0.0, 0.5, 0.5],
                  patch_size: int = 256,
                  channels: list=None, 
-                 cohort: str=None):
+                 cohort: str=None, 
+                 use_fm_features: bool=False,
+                 fm_features_path: str=None
+                 ):
         """
         Initialize the TuProDataset class.
 
@@ -143,6 +156,13 @@ class TuProDataset(BaseDataset):
         self.patch_size = patch_size
         self.channels = channels
         self.cohort = cohort
+        
+        self.use_fm_features = use_fm_features
+        self.fm_features_path = fm_features_path
+        
+        if self.use_fm_features:
+            self.fm_features = h5py.File(self.fm_features_path, "r") 
+
 
     def __len__(self) -> int:
         """
@@ -192,6 +212,11 @@ class TuProDataset(BaseDataset):
                 imc_patch = imc_patch[:,:, self.channels]
             augment_x_offset = 0
             augment_y_offset = 0
+            
+            if self.use_fm_features:
+                fm_feature= self.fm_features[sample][:]  # pass sample name
+                fm_feature = torch.from_numpy(fm_feature.astype(np.float32))
+            
         he_patch = he_patch.transpose((2, 0, 1)) # [H, W, C] --> [C, H, W]
         imc_patch = imc_patch.transpose((2, 0, 1)) # [H, W, C] --> [C, H, W]
         he_patch = torch.from_numpy(he_patch.astype(np.float32)) # changed, removed copy false
@@ -199,20 +224,26 @@ class TuProDataset(BaseDataset):
         
         he_patch, imc_patch = self.shared_transforms(he_patch, imc_patch, p=self.p_shared)
         he_patch = self.he_transforms(he_patch, p=[self.p_jitter, self.p_hed, self.p_affine])
-        
 
         if not he_patch.shape[0]==3: 
             he_patch = torch.from_numpy(he_patch.transpose((2, 0, 1)))
+            
+        # if use_fm_features then return fm_features
         
-        return {'he_patch': he_patch.to(torch.float), 
-                'imc_patch': imc_patch.to(torch.float),
-                'sample': sample,
-                'x_offset': augment_x_offset, 
-                'y_offset': augment_y_offset, 
-                'he_path': self.src_paths[idx], 
-                'imc_path': self.tgt_paths[idx], 
-                'idx': idx
-               } 
+        data = {
+            'he_patch': he_patch.to(torch.float),
+            'imc_patch': imc_patch.to(torch.float),
+            'sample': sample,
+            'x_offset': augment_x_offset,
+            'y_offset': augment_y_offset,
+            'he_path': self.src_paths[idx],
+            'imc_path': self.tgt_paths[idx],
+            'idx': idx
+        }
+
+        if self.use_fm_features:
+            data['fm_features'] = fm_feature
+        return data
 
 class InferenceDataset(Dataset):
     def __init__(self, input_paths):
@@ -318,3 +349,38 @@ class EvalDataset(Dataset):
         # Repeat the grayscale channels along the RGB channels
         x = x.repeat(1, 3, 1, 1)  # Shape: (10, 3, 1000, 1000)
         return x
+
+
+class UniDataset(Dataset):
+    '''
+    Dataset for getting embeddings from uni model
+    Args:
+        patches_paths (list): List of paths to input .npy files.
+        
+    '''
+    def __init__(self, patches_paths,img_size=224):  
+        super(UniDataset, self).__init__()
+        self.patches_paths = patches_paths
+
+        # Transformations using PIL
+        self.transform = transforms.Compose([
+            transforms.ToPILImage(),  # Convert NumPy (H, W, C) array to PIL Image
+            transforms.Resize((img_size, img_size)),  # Resize to target size (224x224)
+            transforms.ToTensor(),  # Convert PIL Image to Tensor (CHW)
+            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        ])
+        
+    def __len__(self):
+        return len(self.patches_paths)
+    
+    def __getitem__(self, idx):  
+
+        patch_path = self.patches_paths[idx]
+        sample = patch_path.split('/')[-1].split('.npy')[0]
+        img = np.load(patch_path)
+        img = (img*255).astype(np.uint8)
+        img = self.transform(img)
+        return {'sample': sample, 
+                'img': img}        
+        
+        

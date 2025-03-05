@@ -1,5 +1,4 @@
 {
-    "base_save_path": "/raid/sonali/project_mvs/dummy",
     "src_folder": "/raid/sonali/project_mvs/data/tupro/binary_he_rois",
     "tgt_folder": "/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x",
     "split": "/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv",
@@ -10,7 +9,7 @@
     "w_ASP": 1.0,
     "batch_size": 16,
     "output_nc": 11, 
-    "device": "cuda:4", 
+    "device": "cuda:1", 
     "_channels": [1], 
     "seed": 0, 
     "method": "ours", 

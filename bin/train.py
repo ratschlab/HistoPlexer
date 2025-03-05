@@ -28,8 +28,10 @@ def main(args, device):
         p_flip_jitter_hed_affine=args.p_flip_jitter_hed_affine,
         patch_size=args.patch_size,
         channels=args.channels, 
-        cohort=args.cohort
-    )
+        cohort=args.cohort, 
+        use_fm_features=args.use_fm_features, 
+        fm_features_path=args.fm_features_path
+        )
 
     datasets = [train_dataset]
 
