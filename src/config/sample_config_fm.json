@@ -1,4 +1,5 @@
-{
+{       
+    "base_save_path": "/raid/sonali/project_mvs/nmi_results/ours-FM-virchow2",
     "src_folder": "/raid/sonali/project_mvs/data/tupro/patches/binary_he_patchs",
     "tgt_folder": "/raid/sonali/project_mvs/data/tupro/patches/binary_imc_processed_11x",
     "split": "/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv",
@@ -9,11 +10,12 @@
     "w_ASP": 1.0,
     "batch_size": 16,
     "output_nc": 11, 
-    "device": "cuda:2", 
+    "device": "cuda:0", 
     "_channels": [1], 
-    "seed": 2, 
-    "method": "ours-FM",
+    "seed": 1, 
+    "method": "ours-FM-virchow2",
     "use_fm_features": true, 
-    "fm_features_path": "/raid/sonali/project_mvs/data/tupro/patches/embeddings_he.h5", 
-    "fm_feature_size": 1024
+    "fm_features_path": "/raid/sonali/project_mvs/data/tupro/patches/embeddings-virchow_v2.h5", 
+    "fm_feature_size": 1280, 
+    "total_steps": 300000
 }
