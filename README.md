@@ -50,6 +50,7 @@ for running the training script using embeddings from foundation model.
 - `device`: Cuda device to be used for the experiment. 
 - `resume_path`: Path to the experiment from where the last saved checkpoint is used to resume the experiment. 
 
+
 Additional configs for using foundation model
 - `fm_features_path`: Path for h5 file containing the features from the foundation model. For this setup and run `bin/fm_embeddings.py` to get embeddings for HE images.  
 - `fm_feature_size`: Size of feature vector from the foundation model. Eg 1024 for uni_v1, 1536 for uni_v2 1280 for virchow_v2.
@@ -75,6 +76,14 @@ Example run for ours/pix2pix/pyramidp2p
 python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro_ours_channels-all_seed-0/checkpoint-step_500000.pt --get_predictions
 ```
 
+Example inference run for using foundation model: 
+```bash
+python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_370000.pt \
+                        --get_predictions \
+                        --src_folder=/home/user/histoplexer/tupro/he_rois_test/binary_he_rois_test \
+                        --test_embeddings_path=/home/user/histoplexer/he_rois_test/embeddings-uni_v1.h5 \
+
+```
 
 ### Downstream tasks 
 
