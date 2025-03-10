@@ -26,6 +26,7 @@ class HistoplexerEval():
         self.args = args
         self.checkpoint_path = args.checkpoint_path
         self.device = args.device
+        print('get predictions: ', args.get_predictions)
 
         if args.get_predictions:
             # getting config file path from experiment 
@@ -96,6 +97,7 @@ class HistoplexerEval():
             self.save_path = args.save_path
             self.markers = args.markers
             print("Markers: ", self.markers)
+            print("Save path: ", self.save_path)
             self.save_path_eval = os.path.join(os.path.dirname(self.save_path), self.args.mode + '_eval')
             print("save_path_eval: ", self.save_path_eval)
             self.tgt_folder = self.args.tgt_folder
@@ -119,7 +121,7 @@ class HistoplexerEval():
             print(input_img.shape, img_name, input_size)
             pred_imc = self.model(input_img)
             print(len(pred_imc))
-            print(pred_imc[0].shape, pred_imc[1].shape, pred_imc[2].shape, pred_imc[-1].shape)
+            print(pred_imc[-1].shape)
 
             if self.config.use_high_res:
                 pred_shape = int(input_size // 2**2)
@@ -141,7 +143,8 @@ class HistoplexerEval():
         print(tgt_gt_paths[0:2], len(tgt_gt_paths))
         
         # pred IMC
-        tgt_pred_paths = sorted(glob.glob(self.save_path + '/*npy'))
+        tgt_pred_paths = sorted(glob.glob(self.save_path + '/*.npy') + 
+                                glob.glob(self.save_path + '/*/*.npy'))
         print(tgt_pred_paths[0:2], len(tgt_pred_paths))
         
         # Metrics initialisation
