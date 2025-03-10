@@ -12,24 +12,43 @@ import tqdm
 # python -m bin.uni_embeddings --patches_dir=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test --device=cuda:0
 # parser
 parser = argparse.ArgumentParser(description="Configurations for getting features embeddings from uni model")
-parser.add_argument("--weights_path", type=str, required=False, default='/home/sonali/raid_st/foundation_models/uni_v1/pytorch_model.bin',help="Path to uni checkpoint file")
+parser.add_argument("--fm_model", type=str, required=False, default='uni_v1',help="Which foundation model to use uni_v1, uni_v2 or virchow_v2")
+parser.add_argument("--weights_path", type=str, required=False, default='/home/sonali/raid_st/foundation_models/',help="Path to all foundation models")
 parser.add_argument("--patches_dir", type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/patches/binary_he_patchs', help="Path to he numpy files")
-parser.add_argument("--device", type=str,required=False, default='cuda:0', help="device used for running the model")
+parser.add_argument("--device", type=str,required=False, default='cuda:5', help="device used for running the model")
 
 args = parser.parse_args()
     
-
 device = args.device
 patches_dir = args.patches_dir
 base_path = os.path.dirname(patches_dir)
-embed_path = os.path.join(base_path, 'embeddings_'+ os.path.basename(patches_dir) +'.h5')
+embed_path = os.path.join(base_path, 'embeddings-' + args.fm_model +'.h5')
 print(embed_path)
 
 # loading uni models
-weights_path = args.weights_path
-model = timm.create_model(
-    "vit_large_patch16_224", img_size=224, patch_size=16, init_values=1e-5, num_classes=0, dynamic_img_size=True
-)
+weights_path = os.path.join(args.weights_path, args.fm_model, 'pytorch_model.bin')
+assert os.path.exists(weights_path), f"Path to model weights does not exist: {weights_path}"
+
+if args.fm_model == 'uni_v1':
+    timm_kwargs = {
+        'model_name': 'vit_base_patch16_224', 'img_size': 224, 'patch_size': 16,
+        'init_values': 1e-5, 'num_classes': 0, 'dynamic_img_size': True
+        }
+elif args.fm_model == 'uni_v2':
+    timm_kwargs = {
+        'model_name': 'vit_giant_patch14_224', 'img_size': 224, 'patch_size': 14, 'depth': 24, 'num_heads': 24,
+        'init_values': 1e-5, 'embed_dim': 1536, 'mlp_ratio': 2.66667*2, 'num_classes': 0, 'no_embed_class': True,
+        'mlp_layer': timm.layers.SwiGLUPacked, 'act_layer': torch.nn.SiLU, 'reg_tokens': 8, 'dynamic_img_size': True
+        }
+elif args.fm_model == 'virchow_v2':
+    from timm.layers import SwiGLUPacked
+    timm_kwargs = {
+        'model_name': 'vit_huge_patch14_224', 'img_size': 224,
+        'init_values': 1e-5, 'mlp_ratio': 5.3375, 'num_classes': 0,
+        'mlp_layer': SwiGLUPacked, 'act_layer': torch.nn.SiLU, 'reg_tokens': 4, 'dynamic_img_size': True
+        }
+    
+model = timm.create_model(pretrained=False, **timm_kwargs)
 model.load_state_dict(torch.load(weights_path, map_location="cpu"), strict=True)
 model.to(device)
 model.eval()
