@@ -27,13 +27,14 @@ python -m bin.train --config_path src/config/sample_config.json
 ```
 for running the training script.
 
-#### Automatic Job Submission with Grid Search Hyperparameters
-
-To submit several jobs automatically using grid search hyperparameters, use:
 
 ```bash
-python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
+python -m bin.train --config_path src/config/sample_config_fm.json
+
 ```
+for running the training script using embeddings from foundation model. 
+
+
 #### Configuration Settings
 
 - `base_save_path`: Path where all experiments are saved. The experiment name .
@@ -49,7 +50,32 @@ python -m bin.run_config_grid --config_path src/config/sample_config_grid.json
 - `device`: Cuda device to be used for the experiment. 
 - `resume_path`: Path to the experiment from where the last saved checkpoint is used to resume the experiment. 
 
+Additional configs for using foundation model
+- `fm_features_path`: Path for h5 file containing the features from the foundation model. For this setup and run `bin/fm_embeddings.py` to get embeddings for HE images.  
+- `fm_feature_size`: Size of feature vector from the foundation model. Eg 1024 for uni_v1, 1536 for uni_v2 1280 for virchow_v2.
+
 ### Inference 
+```bash
+python -m bin.inference
+```
+Can run inference 
+and pass following arguments appropriately: 
+- `checkpoint_path`: Full path to the exact pth file to be used for running the inference. 
+- `src_folder`: Path to the HE numpy files for test set. 
+- `tgt_folder`: Path to the ground truth IMC/IF images. 
+- `mode`: Default test. 
+- `measure_metrics`: If also do evaluation and measure metrics after inference eg MSSSIM, psnr, RMSE. Default True. 
+- `markers`: Markers on which the experiment was run. Pass as `--markers CD16 CD20 CD3 CD31 CD8a gp100 HLA-ABC HLA-DR MelanA S100 SOX10`
+- `get_predictions`: Pass this if want to run inference, else only evaluation is performed.  
+- `save_path`: If predictions already saved and only need to run evaluation, then provide path for the saved predictions. 
+- `split`: Directory of the data split csv file. First row has column names "train", "test", "valid". The remaining rows has 3 sample names for each of the train/test/valid splits.
+
+Example run for ours/pix2pix/pyramidp2p
+```bash
+python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro_ours_channels-all_seed-0/checkpoint-step_500000.pt --get_predictions
+```
+
+
 ### Downstream tasks 
 
 <!-- Details about our model architecture and implementation can be found in our [preprint](). If you use this code, please consider citing our work: -->
