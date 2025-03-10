@@ -66,10 +66,12 @@ if __name__ == "__main__":
 
     # experiment name 
     if config.resume_path == None: 
-        channel_str = 'all' if config.channels is None else "-".join(map(str, config.channels)) if isinstance(config.channels, list) else str(config.channels)
+        channel_str = 'all' if config.channels is None else str(config.markers[config.channels[0]])
         config.experiment_name  = config.cohort + '_' + config.method + '_channels-' + channel_str  +'_seed-' + str(config.seed)
     else: 
         config.experiment_name = config.resume_path.split('/')[-1]
+    
+    print(config.experiment_name)
     
     config.save_path = os.path.join(config.base_save_path, config.experiment_name)
     print(f"save path: {config.save_path}")
