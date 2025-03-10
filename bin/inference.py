@@ -23,15 +23,15 @@ def main(args):
 
 # # if running eval only for cyclegan exps, inference is done using cyclegan script and exps doesn't save configs in the same format, therefore done in two steps                    
 # python -m bin.inference --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x \
-#                         --device=cuda:4 \
+#                         --device=cuda:6 \
 #                         --markers CD16 CD20 CD3 CD31 CD8a gp100 HLA-ABC HLA-DR MelanA S100 SOX10 \
 #                         --save_path=/raid/sonali/project_mvs/nmi_results/cycleGAN/tupro_cyclegan_channels-all_seed-0/results \
 #                         --split='/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv'
 
 # For FM 
-# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_150000.pt \
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_370000.pt \
 #                         --get_predictions \
-#                         --device=cuda:4 \
+#                         --device=cuda:2 \
 #                         --src_folder=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test \
 #                         --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x 
                         
