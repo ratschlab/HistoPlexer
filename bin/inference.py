@@ -29,10 +29,11 @@ def main(args):
 #                         --split='/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv'
 
 # For FM 
-# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_370000.pt \
+# python -m bin.inference --checkpoint_path=/raid/sonali/project_mvs/nmi_results/ours-FM/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_70000.pt \
 #                         --get_predictions \
 #                         --device=cuda:2 \
-#                         --src_folder=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test \
+#                         --src_folder=/raid/sonali/project_mvs/data/tupro/he_rois_test/binary_he_rois_test \
+#                         --test_embeddings_path='/raid/sonali/project_mvs/data/tupro/he_rois_test/embeddings-uni_v1.h5'\
 #                         --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x 
                         
 if __name__ == "__main__":
@@ -48,6 +49,9 @@ if __name__ == "__main__":
     parser.add_argument("--markers", nargs="+", default=[], help="List of markers (optional), useful if running only evaluation")   
     parser.add_argument("--get_predictions", action="store_true", help="Enable prediction mode")
     parser.add_argument("--split", type=str, required=False, default='/raid/sonali/project_mvs/meta/tupro/split3_train-test.csv', help="path to csv data split file")
+    
+    parser.add_argument("--test_embeddings_path", type=str, required=False, default=None, help="Path to h5 files with embeddings from foundation model")
+
     args = parser.parse_args()
     
     print(args.get_predictions)

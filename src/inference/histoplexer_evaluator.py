@@ -10,6 +10,7 @@ from math import sqrt, ceil
 from tqdm import tqdm
 from copy import deepcopy
 import glob
+import h5py
 
 from pathlib import Path
 import json 
@@ -26,6 +27,10 @@ class HistoplexerEval():
         self.args = args
         self.checkpoint_path = args.checkpoint_path
         self.device = args.device
+        self.test_embeddings_path = args.test_embeddings_path
+        if self.test_embeddings_path: 
+            self.fm_features = h5py.File(self.test_embeddings_path, "r") 
+        
         print('get predictions: ', args.get_predictions)
 
         if args.get_predictions:
@@ -78,7 +83,6 @@ class HistoplexerEval():
                                         pin_memory=True, 
                                         num_workers=1, 
                                         drop_last=False)
-            # if number of npy files in save_path is equal to number of src_paths, then skip inference
             if not len(glob.glob(self.save_path + '/*npy')) == len(self.src_paths):
                 print("Running inference!")
                 self.run_inference()
@@ -110,19 +114,21 @@ class HistoplexerEval():
             print("Evaluating metrics!")            
             self.eval()
 
-
-    # TODO also write dataset class for inference -- make sure can input diff file formats -- npy, tif, png, jpg -- make sure all in same range -- to tensor
-    # have a dummy he on github to test and viz -- outputs always in npy or also image -- flag for viz -- save figure with channels etc -- have a demo folder with notebook 
-    # make sure inference also works for single image and also 1 marker -- have a dummy image on github to test
     
-    def run_inference(self):
+    def run_inference(self):            
         for input_img, img_name, input_size in self.test_loader:
             input_img = input_img.to(self.device)
             print(input_img.shape, img_name, input_size)
-            pred_imc = self.model(input_img)
+            
+            if self.test_embeddings_path:  
+                print(img_name[0])          
+                fm_feature= self.fm_features[img_name[0]][:]
+                fm_feature = torch.from_numpy(fm_feature.astype(np.float32)).unsqueeze(0).to(self.device)
+                pred_imc = self.model(input_img, fm_feature)
+            else: 
+                pred_imc = self.model(input_img)
             print(len(pred_imc))
             print(pred_imc[-1].shape)
-
             if self.config.use_high_res:
                 pred_shape = int(input_size // 2**2)
                 print(input_size, pred_shape, pred_imc[-1].shape, pred_imc[-1].squeeze(0).shape)
@@ -139,6 +145,7 @@ class HistoplexerEval():
         # TODO how to agg across markers and exps 
 
         # GT IMC 
+        print('tgt_folder: ', self.tgt_folder)
         tgt_gt_paths = sorted(make_dataset(self.tgt_folder, self.args.mode, self.split))
         print(tgt_gt_paths[0:2], len(tgt_gt_paths))
         

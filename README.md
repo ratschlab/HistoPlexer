@@ -82,7 +82,7 @@ python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_o
                         --get_predictions \
                         --src_folder=/home/user/histoplexer/tupro/he_rois_test/binary_he_rois_test \
                         --test_embeddings_path=/home/user/histoplexer/he_rois_test/embeddings-uni_v1.h5 \
-
+                        --tgt_folder=/home/user/histoplexer/tupro/binary_imc_processed_11x                        
 ```
 
 ### Downstream tasks 
