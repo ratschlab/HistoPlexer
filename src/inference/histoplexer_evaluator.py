@@ -109,7 +109,7 @@ class HistoplexerEval():
             self.tgt_folder = self.args.tgt_folder
             print("tgt_folder: ", self.tgt_folder)
             self.split = self.args.split
-            self.submission_id = self.args.save_path.split('/')[-2]
+            self.submission_id = self.args.save_path.split('/')[-3]
             
         # get performance using eval metrics ---
         print('get metrics eval: ', args.measure_metrics)
