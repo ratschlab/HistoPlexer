@@ -12,13 +12,16 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Configurations for HistoPlexer pseudo multiplex")
     
-    parser.add_argument("--results_path", type=str, required=False, default='/raid/sonali/project_mvs/nmi_results/cycleGAN/', help="Path to the results where all multiplex and singleplex experiments are stored")    
+    parser.add_argument("--results_path", type=str, required=False, default='/raid/sonali/project_mvs/nmi_results/', help="Path to the results where all multiplex and singleplex experiments are stored")    
     parser.add_argument("--method", type=str, required=False, default='cycleGAN', help="name of the modes: ours, pix2pix, pyramidp2p, cycleGAN, ours-FM")    
     parser.add_argument("--real_multiplex", type=str, required=True, default=None, help="Name of the real multiplex experiment")    
     parser.add_argument("--markers", nargs="+", default=[], help="List of markers (optional), useful if running only evaluation")   
-    parser.add_argument("--checkpoint_step", type=int, default=495000, help="checkpoint step for inference")   
+    parser.add_argument("--checkpoint_step", type=int, default=150000, help="checkpoint step for inference")   
 
     args = parser.parse_args()
+    
+    args.results_path = os.path.join(args.results_path, args.method)
+    assert os.path.exists(args.results_path), f"Path {args.results_path} does not exist"
         
     real_multiplex = args.real_multiplex 
     pseudo_multiplex = real_multiplex.replace('all', 'all-pseudoplex')
@@ -80,9 +83,9 @@ if __name__ == "__main__":
     for marker in markers: 
         exp_path = real_multiplex_path.replace("all", marker)
         assert os.path.exists(exp_path), f"Path {exp_path} does not exist"
-        exp_result = glob.glob(exp_path + '/' + results_folder + '*')[-1]
+        exp_result = glob.glob(exp_path + '/test_images/step_*')[-1]
         exp_results.append(exp_result)
-    print(len(exp_results), exp_results[0:2])
+    print(len(exp_results), exp_results)
     
     pred_paths = glob.glob(exp_results[0] + '/*.npy')
     print(len(pred_paths), pred_paths[0:2])
