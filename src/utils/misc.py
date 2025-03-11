@@ -28,3 +28,11 @@ def get_n_trainable_params(model, last_stage=None):
     else:
         model_parameters = filter(lambda p: p.requires_grad, model.parameters())
         return sum([np.prod(p.size()) for p in model_parameters])
+    
+    
+def str_to_bool(s):
+    if isinstance(s, bool):
+        return s  # Return if already a boolean
+    if isinstance(s, str):
+        return s.strip().lower() in ['true', '1', 'yes', 'on']
+    return False  # Optional: default to False for other types (customizable)
