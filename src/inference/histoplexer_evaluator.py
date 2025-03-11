@@ -16,6 +16,7 @@ from pathlib import Path
 import json 
 from types import SimpleNamespace
 from src.models.generator import unet_translator
+from src.utils.misc import str_to_bool
 import concurrent.futures
 from src.dataset.dataset import make_dataset, InferenceDataset, EvalDataset
 from torchmetrics.image import MultiScaleStructuralSimilarityIndexMeasure, PeakSignalNoiseRatio, RootMeanSquaredErrorUsingSlidingWindow
@@ -58,7 +59,7 @@ class HistoplexerEval():
                 extra_feature_size=self.config.fm_feature_size
             )
             print("Model created!")
-            print(self.model)
+            # print(self.model)
 
             # load model weights all in cpu
             self.checkpoint_name = os.path.basename(self.checkpoint_path).split('-')[1].split('.')[0]
@@ -102,7 +103,8 @@ class HistoplexerEval():
             self.markers = args.markers
             print("Markers: ", self.markers)
             print("Save path: ", self.save_path)
-            self.save_path_eval = os.path.join(os.path.dirname(self.save_path), self.args.mode + '_eval')
+            self.save_path_eval = self.save_path.replace('test_images', 'test_eval')
+            # self.save_path_eval = os.path.join(os.path.dirname(self.save_path), 'test_eval')
             print("save_path_eval: ", self.save_path_eval)
             self.tgt_folder = self.args.tgt_folder
             print("tgt_folder: ", self.tgt_folder)
@@ -110,9 +112,13 @@ class HistoplexerEval():
             self.submission_id = self.args.save_path.split('/')[-2]
             
         # get performance using eval metrics ---
-        if args.measure_metrics:
-            print("Evaluating metrics!")            
-            self.eval()
+        print('get metrics eval: ', args.measure_metrics)
+        if str_to_bool(args.measure_metrics):
+            print("Evaluating metrics!")  
+            if os.path.exists(os.path.join(self.save_path_eval, 'all_metrics_agg.csv')): 
+                print("Metrics already computed!")
+            else:
+                self.eval()
 
     
     def run_inference(self):            
