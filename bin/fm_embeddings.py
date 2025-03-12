@@ -30,8 +30,8 @@ weights_path = os.path.join(args.weights_path, args.fm_model, 'pytorch_model.bin
 assert os.path.exists(weights_path), f"Path to model weights does not exist: {weights_path}"
 
 if args.fm_model == 'uni_v1':
-    timm_kwargs = {
-        'model_name': 'vit_base_patch16_224', 'img_size': 224, 'patch_size': 16,
+    timm_kwargs = {        
+        'model_name': 'vit_large_patch16_224', 'img_size': 224, 'patch_size': 16,
         'init_values': 1e-5, 'num_classes': 0, 'dynamic_img_size': True
         }
 elif args.fm_model == 'uni_v2':
