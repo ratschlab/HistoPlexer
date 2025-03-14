@@ -5,9 +5,9 @@ BASE_PATH="/raid/sonali/project_mvs/nmi_results"
 
 # List of experiment types
 # EXPERIMENT_TYPES=("ours-FM")  
-EXPERIMENT_TYPES=("ours-FM" "ours-FM-virchow2" "ours-FM-uni2")  # List of experiment types
-
-DEVICE="cuda:4"
+# EXPERIMENT_TYPES=("ours-FM" "ours-FM-virchow2" "ours-FM-uni2")  # List of experiment types
+EXPERIMENT_TYPES=("ours-FM-virchow2" "ours-FM-uni2")
+DEVICE="cuda:1"
 
 # Loop through each experiment type (pix2pix, ours, pyramidp2p, etc.)
 for EXPERIMENT_TYPE in "${EXPERIMENT_TYPES[@]}"; do
@@ -21,9 +21,9 @@ for EXPERIMENT_TYPE in "${EXPERIMENT_TYPES[@]}"; do
         EXPERIMENT_NAME=$(basename "$EXPERIMENT_DIR")
         echo "Running for: $EXPERIMENT_NAME"
 
-        # EMBEDDING_PART=$(echo "$EXPERIMENT_TYPE" | cut -d'-' -f3)  # Extract part after first hyphen
-        # TEST_EMBEDDINGS_PATH="/raid/sonali/project_mvs/data/tupro/he_rois_test/embeddings-${EMBEDDING_PART}.h5"
-        # echo "$TEST_EMBEDDINGS_PATH"
+        EMBEDDING_PART=$(echo "$EXPERIMENT_TYPE" | cut -d'-' -f3)  # Extract part after first hyphen
+        TEST_EMBEDDINGS_PATH="/raid/sonali/project_mvs/data/tupro/he_rois_test/embeddings-${EMBEDDING_PART}.h5"
+        echo "$TEST_EMBEDDINGS_PATH"
 
         if [[ "$EXPERIMENT_NAME" == *"pseudo"* ]]; then # pseudo multiplex
             SAVE_PATH="$EXPERIMENT_DIR/test_images/step_150000"
@@ -47,24 +47,24 @@ for EXPERIMENT_TYPE in "${EXPERIMENT_TYPES[@]}"; do
                     --device="$DEVICE" \
                     --src_folder=/raid/sonali/project_mvs/data/tupro/he_rois_test/binary_he_rois_test \
                     --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x \
-                    --measure_metrics=False    
-        
+                    --measure_metrics=False  \
+                    --test_embeddings_path="$TEST_EMBEDDINGS_PATH" 
+
         elif [[ "$EXPERIMENT_NAME" == *"all_"* ]]; then # multiplex
             LATEST_CHECKPOINT=$(ls "$EXPERIMENT_DIR"/checkpoint-step_*.pt 2>/dev/null | \
                 sed 's/.*checkpoint-step_\([0-9]\+\)\.pt/\1 \0/' | \
                 sort -nr | head -n1 | cut -d' ' -f2)
 
-            LATEST_CHECKPOINT="$EXPERIMENT_DIR/checkpoint-step_100000.pt"
+            # LATEST_CHECKPOINT="$EXPERIMENT_DIR/checkpoint-step_495000.pt"
             echo "$LATEST_CHECKPOINT"
 
             python -m bin.inference --checkpoint_path="$LATEST_CHECKPOINT"  \
                             --get_predictions \
                             --device="$DEVICE" \
                             --src_folder=/raid/sonali/project_mvs/data/tupro/he_rois_test/binary_he_rois_test \
-                            --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x 
+                            --tgt_folder=/raid/sonali/project_mvs/data/tupro/binary_imc_processed_11x \
+                            --test_embeddings_path="$TEST_EMBEDDINGS_PATH" 
 
         fi
     done  
 done  
-
-
