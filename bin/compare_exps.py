@@ -41,6 +41,9 @@ for exp_name in keywords.keys():
     for exp in exps:
         print(exp.split('/')[-1])
         
+        if len(sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv'))) == 0:
+            continue
+        
         metrics_path = sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv'))[-1]
         print(metrics_path)
         df_exp = pd.read_csv(metrics_path)
