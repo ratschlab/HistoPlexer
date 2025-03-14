@@ -9,13 +9,17 @@ import h5py
 import argparse
 import tqdm
 
-# python -m bin.uni_embeddings --patches_dir=/raid/sonali/project_mvs/data/tupro/binary_he_rois_test --device=cuda:0
+# python -m bin.fm_embeddings --fm_model=uni_v1 --img_size=864 --patches_dir=/raid/sonali/project_mvs/data/tupro/he_rois_test/binary_he_rois_test # for test rois
+# python -m bin.fm_embeddings --fm_model=uni_v2 --img_size=868 --patches_dir=/raid/sonali/project_mvs/data/tupro/he_rois_test/binary_he_rois_test
+# python -m bin.fm_embeddings --fm_model=uni_v1  # for train patches 
+
 # parser
 parser = argparse.ArgumentParser(description="Configurations for getting features embeddings from uni model")
 parser.add_argument("--fm_model", type=str, required=False, default='uni_v1',help="Which foundation model to use uni_v1, uni_v2 or virchow_v2")
 parser.add_argument("--weights_path", type=str, required=False, default='/home/sonali/raid_st/foundation_models/',help="Path to all foundation models")
 parser.add_argument("--patches_dir", type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/patches/binary_he_patchs', help="Path to he numpy files")
-parser.add_argument("--device", type=str,required=False, default='cuda:5', help="device used for running the model")
+parser.add_argument("--device", type=str, required=False, default='cuda:0', help="device used for running the model")
+parser.add_argument("--img_size", type=int, required=False, default=224, help="the image size used for the model")
 
 args = parser.parse_args()
     
@@ -57,14 +61,14 @@ print("Model loaded")
 # get all npy files and pass to dataloader
 patches_paths = glob.glob(patches_dir + '/*.npy')
 print(len(patches_paths), patches_paths[0])
-uni_dataset = UniDataset(patches_paths)
+uni_dataset = UniDataset(patches_paths, img_size=args.img_size)
 
 # dataloader
 uni_loader = DataLoader(uni_dataset,
-                        batch_size=128, 
+                        batch_size=1, 
                         shuffle=False,
                         pin_memory=True, 
-                        num_workers=4, 
+                        num_workers=8, 
                         drop_last=False)
 
 print("Dataloader loaded")
