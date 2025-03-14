@@ -8,6 +8,7 @@ import glob
 import argparse
 
 # python -m bin.pseudo_multiplex --method=cycleGAN --markers CD16 CD20 CD3 CD31 CD8a gp100 HLA-ABC HLA-DR MelanA S100 SOX10 --real_multiplex=tupro_cyclegan_channels-all_seed-2
+# python -m bin.pseudo_multiplex --method=ours-FM --markers CD16 CD20 CD3 CD31 CD8a gp100 HLA-ABC HLA-DR MelanA S100 SOX10 --real_multiplex=tupro-patches_ours-FM_channels-all_seed-2
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Configurations for HistoPlexer pseudo multiplex")
