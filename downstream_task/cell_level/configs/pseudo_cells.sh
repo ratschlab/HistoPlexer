@@ -2,8 +2,8 @@
 
 # Define base paths and models
 BASE_PATH="/raid/sonali/project_mvs/nmi_results"
-EXPERIMENT_TYPES=("ours-FM" "ours" "ours-FM-virchow2" "ours-FM-uni2")  # List of experiment types
-# EXPERIMENT_TYPES=("pix2pix" "pyramidp2p" "cycleGAN")  # List of experiment types
+EXPERIMENT_TYPES=("ours-FM" "ours-FM-virchow2" "ours-FM-uni2")  # List of experiment types
+# EXPERIMENT_TYPES=("ours" "pix2pix" "pyramidp2p" "cycleGAN")  # List of experiment types
 
 # Loop through each experiment type (pix2pix, ours, pyramidp2p, etc.)
 for EXPERIMENT_TYPE in "${EXPERIMENT_TYPES[@]}"; do
