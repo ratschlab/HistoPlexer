@@ -35,7 +35,7 @@ if __name__ == "__main__":
     data_set = args.data_set
     os.makedirs(args.save_path, exist_ok=True)
 
-    # keywords to find all experiments for different baselines
+    # keywords to find all experiments for different baselines -- adapt as needed
     keywords = {
                 'ours-FM-MP': 'tupro-patches_ours-FM_channels-all_seed-',
                 'ours-FM-SP': 'tupro-patches_ours-FM_channels-all-pseudoplex_seed',
