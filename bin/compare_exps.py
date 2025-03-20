@@ -4,17 +4,19 @@ import glob
 import csv
 import pandas as pd
 import statistics
+import argparse
 
 
-base_path = '/raid/sonali/project_mvs/nmi_results'
-markers_list = ["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"]
-# save_path = '/raid/sonali/project_mvs/results/final_results/quatitative'
-# os.makedirs(save_path, exist_ok=True)
+parser = argparse.ArgumentParser(description='Comparing different methods for HistoPlexer using MSSSIM, PSNR, RMSE metrics')
+parser.add_argument('--base_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results', help='Path to the experiments directory')
+parser.add_argument('--save_path', type=str, required=False, default= '/raid/sonali/project_mvs/nmi_results/final_results/quantitative', help='Path to where save the csv file with metrics from all experiments')
+parser.add_argument('--markers_list', type=list, default=["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"], help='List of markers to use')
+args = parser.parse_args()
 
+os.makedirs(args.save_path, exist_ok=True)
+# keywords to find all experiments for different baselines 
 keywords = {'ours-FM-MP': 'tupro-patches_ours-FM_channels-all_seed-',
             'ours-FM-SP': 'tupro-patches_ours-FM_channels-all-pseudoplex_seed',
-            'ours-FM-uni2-MP': 'tupro-patches_ours-FM-uni2_channels-all_seed-', 
-            'ours-FM-virchow2-MP': 'tupro-patches_ours-FM-virchow2_channels-all_seed-',
             'ours-MP': 'tupro_ours_channels-all_seed-',
             'ours-SP': 'tupro_ours_channels-all-pseudoplex_seed',
             'pyramidp2p-MP': 'tupro_pyramidp2p_channels-all_seed-',
@@ -30,7 +32,7 @@ list_csv = []
 for exp_name in keywords.keys(): 
     print(exp_name)
     
-    exps = glob.glob(os.path.join(base_path + '/*/*' + keywords[exp_name] + '*'))
+    exps = glob.glob(os.path.join(args.base_path + '/*/*' + keywords[exp_name] + '*'))
     print(exps)
     print(len(exps))
  
@@ -44,7 +46,8 @@ for exp_name in keywords.keys():
         if len(sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv'))) == 0:
             continue
         
-        metrics_path = sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv'))[-1]
+        metrics_path = sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv'))[0]
+        print(sorted(glob.glob(exp + '/test_eval' + '/*/' + 'all_metrics_per_sample.csv')))
         print(metrics_path)
         df_exp = pd.read_csv(metrics_path)
         df_exp = df_exp[~df_exp['PSNR'].isin([np.inf, -np.inf])]
@@ -79,3 +82,8 @@ for exp_name in keywords.keys():
         list_csv.append([exp_name, msssim_mean, msssim_stdev, psnr_mean, psnr_stdev, rmse_mean, rmse_stdev])
         print('\n')
 
+# write to csv
+df = pd.DataFrame(list_csv, columns=['exp_name', 'msssim_mean', 'msssim_stdev', 'psnr_mean', 'psnr_stdev', 'rmse_mean', 'rmse_stdev'])
+df.to_csv(os.path.join(args.save_path,'results.csv'), index=False)
+print(df)
+print('done')
