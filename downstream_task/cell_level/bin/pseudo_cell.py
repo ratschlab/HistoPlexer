@@ -7,38 +7,45 @@ import os
 import json
 import glob
 
-# python -m downstream_task.cell_level.bin.pseudo_cell --experiment_type='ours' --experiment_name='tupro_ours_channels-all_seed-3' --overwrite
+# python -m bin.pseudo_cell --experiment_type='ours' --experiment_name='tupro_ours_channels-all_seed-3' --overwrite
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Aggregate signal across pseudocells (circles around nuclei centroids).')
     parser.add_argument('--base_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results', help='Path where all results for project reside')
-    parser.add_argument('--experiment_type', type=str, required=True, default='ours-FM', help='experiment type eg ours-FM, ours, pix2pix, pyramidp2p, ours-FM-uni2, ours-FM-virchow2, cycleGAN') 
-    parser.add_argument('--experiment_name', type=str, required=True, default=None, help='experiment name')
+    parser.add_argument('--experiment_type', type=str, required=False, default='ours', help='experiment type eg ours-FM, ours, pix2pix, pyramidp2p, cycleGAN') 
+    parser.add_argument('--experiment_name', type=str, required=False, default=None, help='experiment name')
     parser.add_argument('--data_set', type=str, required=False, default="test", help='Which set from split to use {test, train}')
+    parser.add_argument('--input_path', type=str, required=False, default=None, help='Path to the predicted images')
     parser.add_argument('--he_nuclei_path', type=str, required=False, default='/raid/sonali/project_mvs/meta/tupro/hovernet/hovernet_nuclei-coordinates_all-samples.csv', 
                         help='path to csv file with XY coordinates of nuclei from hovernet')
     parser.add_argument("--overwrite", action="store_true", help='pass if overwrite existing output files')
     parser.add_argument('--radius', type=int, required=False, default=5, help='Radius of the circle to be drawn around the XY cell coordinates')
-    parser.add_argument('--level', type=int, required=False, default=2, help='2 for tupro data, 1 for deepliif. Depends on the dataset and diff in resolution between HE and IMC')
+    parser.add_argument('--level', type=int, required=False, default=2, help='2 for tupro data, 0 for deepliif. Depends on the dataset and diff in resolution between HE and IMC')
+    parser.add_argument('--markers_list', type=list, default=["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"], help='List of markers to use')
+    parser.add_argument('--save_path', type=str, required=False, default=None, help='Path to save the results')
 
-    args = parser.parse_args()
+    args = parser.parse_args() 
     
-    markers = ["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"]
-
     # get predicted data
-    if args.experiment_type == 'cycleGAN':
-        input_path = os.path.join(args.base_path, args.experiment_type, args.experiment_name, 'results')
-        pred_paths = sorted(glob.glob(input_path + '/*.npy'))
-    else: 
-        input_path = sorted(glob.glob(os.path.join(args.base_path, args.experiment_type, args.experiment_name, 'test_images') + '/step*'))[-1]
-        print('input_path: ', input_path)
-        pred_paths = sorted(glob.glob(input_path + '/*.npy'))
+    if not args.input_path:
+        if args.experiment_type == 'cycleGAN':
+            input_path = os.path.join(args.base_path, args.experiment_type, args.experiment_name, 'results')
+            pred_paths = sorted(glob.glob(input_path + '/*.npy'))
+        else: 
+            input_path = sorted(glob.glob(os.path.join(args.base_path, args.experiment_type, args.experiment_name, 'test_images') + '/step*'))[-1]
+            print('input_path: ', input_path)
+            pred_paths = sorted(glob.glob(input_path + '/*.npy'))
+    else:
+        pred_paths = sorted(glob.glob(args.input_path + '/*.npy'))
     print('pred_paths: ', pred_paths[0], len(pred_paths))
     
     # save path 
-    save_path = os.path.join(args.base_path, args.experiment_type, args.experiment_name, args.data_set + '_scdata')            
+    if not args.save_path:
+        save_path = os.path.join(args.base_path, args.experiment_type, args.experiment_name, args.data_set + '_scdata')  
+    else:
+        save_path = args.save_path          
     os.makedirs(save_path, exist_ok=True)
     print('save_path: ', save_path)
-    print('\n')
     
     # load XY cell coordinates
     he_coords = pd.read_csv(args.he_nuclei_path)
@@ -74,7 +81,7 @@ if __name__ == "__main__":
 
         unq,ids,count = np.unique(mask.flatten(),return_inverse=True,return_counts=True)
         # average pixel signal within cells (per channel)
-        for j,prot in enumerate(markers):
+        for j,prot in enumerate(args.markers_list):
             try:
                 out = np.column_stack((unq,np.bincount(ids,pred_imc[:,:,j].flatten())/count))
             except:

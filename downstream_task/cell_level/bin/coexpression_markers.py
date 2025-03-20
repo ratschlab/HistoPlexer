@@ -14,14 +14,13 @@ import seaborn as sns
 import sys 
 import statistics
 
-from ..src.coexpression_utils import prep_pointplot_df, calculate_scores_and_best_experiments, plot_coexpression_patterns
+from src.coexpression_utils import prep_pointplot_df, calculate_scores_and_best_experiments, plot_coexpression_patterns
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Co-expression patterns analysis')
     parser.add_argument('--base_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results', help='Path to the experiments directory')
     parser.add_argument('--data_set', type=str, default='test', help='Dataset to use')
     parser.add_argument('--level', type=int, default=2, help='Resolution level')
-    parser.add_argument('--exp_setting', type=str, default='all', help='Experiment setting')
     parser.add_argument('--co_exp_setting', type=str, default='pruned', help='pruned or all marker pairs')
     parser.add_argument('--gt_scdata_path', type=str, default='/raid/sonali/project_mvs/data/tupro/imc_updated/agg_masked_data-raw_clip99_arc_otsu3_std_minmax_split3-r5', 
                         help='Path to ground truth avg expression per cell')
@@ -36,6 +35,7 @@ if __name__ == "__main__":
     data_set = args.data_set
     os.makedirs(args.save_path, exist_ok=True)
 
+    # keywords to find all experiments for different baselines
     keywords = {
                 'ours-FM-MP': 'tupro-patches_ours-FM_channels-all_seed-',
                 'ours-FM-SP': 'tupro-patches_ours-FM_channels-all-pseudoplex_seed',
