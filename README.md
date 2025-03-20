@@ -76,9 +76,9 @@ Example run for ours/pix2pix/pyramidp2p
 python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro_ours_channels-all_seed-0/checkpoint-step_500000.pt --get_predictions
 ```
 
-Example inference run for using foundation model: 
+Example inference run for using our model: 
 ```bash
-python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_ours-FM_channels-all_seed-0/checkpoint-step_370000.pt \
+python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_ours_channels-all_seed-0/checkpoint-step_300000.pt \
                         --get_predictions \
                         --src_folder=/home/user/histoplexer/tupro/he_rois_test/binary_he_rois_test \
                         --test_embeddings_path=/home/user/histoplexer/he_rois_test/embeddings-uni_v1.h5 \
