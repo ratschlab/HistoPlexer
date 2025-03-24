@@ -48,3 +48,28 @@ optional arguments:
     --scale_to01_forplot  Scale to [0,1] for plotting only.
 ```
 Note: In the script, adapt `protein_sets` for plotting as needed. 
+
+## cell-typing 
+For training the random forest classifier 
+```bash
+python -m bin.celltyping_train --gt_scdata_merged=<Path-to-ground-truth-avg-expression-per-cell-merged-data-over-samples> --gt_celltypes=<metadata-per-cell-segmented-from-IMC-ground-truth-data-using-CellProfiler_includes-coordinates-X-Y-and-cell-type> --save_path=<Path-where-random-forest-classifier-will-be-saved> --split_csv=<csv-file-with-sample-for-data-splits>
+```
+```
+optional arguments:
+    --max_depth           Max tree depth, if None, then tree grown until purity, refer sklearn docs.
+    --n_estimators        Number of trees to use.
+    --markers_list        List of markers to use for cell typing. 
+    --cell_types          Helps in merging cell types.
+```    
+For apply trained random forest
+```bash
+python -m bin.celltyping_infer --pred_scdata=<Path-to-avg-expression-per-pseudo-cell-using-predicted-expression> --rf_path=<Path-to-trained-RF-joblib-file> --split_csv=<csv-file-with-sample-for-data-splits>
+```
+```
+optional arguments:
+    --data_set            Which set from split to use, default 'test'.
+    --markers_list        List of markers to use for cell typing. 
+    --cell_types          Cell types on which the random forest was trained. Default 'all'. 
+    --save_path           Path to save predictions.
+
+```   
