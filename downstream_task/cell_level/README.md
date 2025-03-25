@@ -59,7 +59,7 @@ optional arguments:
     --max_depth           Max tree depth, if None, then tree grown until purity, refer sklearn docs.
     --n_estimators        Number of trees to use.
     --markers_list        List of markers to use for cell typing. 
-    --cell_types          Helps in merging cell types.
+    --cell_types          Helps in merging cell types. Default 'tumor_CD8_CD4_CD20'.
 ```    
 For apply trained random forest
 ```bash
@@ -69,7 +69,18 @@ python -m bin.celltyping_infer --pred_scdata=<Path-to-avg-expression-per-pseudo-
 optional arguments:
     --data_set            Which set from split to use, default 'test'.
     --markers_list        List of markers to use for cell typing. 
-    --cell_types          Cell types on which the random forest was trained. Default 'all'. 
+    --cell_types          Cell types on which the random forest was trained. Default 'tumor_CD8_CD4_CD20'. 
     --save_path           Path to save predictions.
 
 ```   
+
+For plotting predicted celltypes and comparing with ground truth 
+```bash
+python -m bin.celltyping_visualise --pred_celltype_path=<Path-to-predicted-celltypes.save_path-in-celltyping_infer> --gt_celltypes=<Path-to-ground-truth-celltypes> --he_path=<Path-to-he-numpy-rois>
+
+```
+```
+optional arguments:
+    --cell_types          Cell types on which the random forest was trained. Default 'tumor_CD8_CD4_CD20'. 
+    --save_path           Path to save predictions.
+``` 

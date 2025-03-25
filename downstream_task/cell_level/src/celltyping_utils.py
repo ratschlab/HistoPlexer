@@ -77,3 +77,26 @@ def plot_cfm(y_gt, y_pred, labels, normalize='true'):
     cfm_display = ConfusionMatrixDisplay(confusion_matrix, display_labels=labels)
     cfm_display.plot(ax=ax)
     plt.xticks(rotation=90)
+
+def plt_ax_adjust(plt_ax, title=''):
+    plt_ax.set_box_aspect(1)
+    plt_ax.set_title(title)
+    plt_ax.set_xticks([])
+    plt_ax.set_yticks([])
+    plt_ax.set_ylabel('')
+    plt_ax.set_xlabel('')
+    plt_ax.set_facecolor('white')
+
+def get_density_bins(desired_resolution_px=32, bin_lim=None, axmax=None):
+    ''' Function to get bins for density estimation
+    desired_resolution_px: desired resolution in px to compute density; n_bins=1000//densitycorr_px
+    bin_lim: limit of bins reach (span of linspace)
+    axmax: max val to divide by desired resolution and get n_bins {1000, 1024}
+    '''
+    if axmax is None:
+        axmax = [bin_lim + i for i in range(100) if ((bin_lim+i) % desired_resolution_px)==0][0]
+    n_bins = axmax//desired_resolution_px
+    x_bins = np.linspace(0, bin_lim, n_bins+1)
+    y_bins = np.linspace(0, bin_lim, n_bins+1)
+    
+    return x_bins, y_bins
