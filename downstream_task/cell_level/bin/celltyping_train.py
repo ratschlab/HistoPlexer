@@ -20,10 +20,9 @@ from sklearn.metrics import confusion_matrix as cfm
 
 from src.celltyping_utils import get_manual_aggregation, plot_feature_imp, plot_cfm
 
-# python -m bin.celltyping_train
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train RF clasifier using train set.')
-    parser.add_argument('--save_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results/final_results/cell_typing', help='Path to save random forest model and results')
+    parser.add_argument('--save_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results/final_results/cell_typing/rf', help='Path to save random forest model and results')
     parser.add_argument('--gt_scdata_merged', type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/imc_updated/agg_masked_data-raw_clip99_arc_otsu3_std_minmax_split3-r5.tsv', 
                         help='Path to ground truth avg expression per cell merged data over samples ')
     parser.add_argument('--seed', type=int, required=False, default=0, help='Random seed')
@@ -31,13 +30,13 @@ if __name__ == "__main__":
     parser.add_argument('--n_estimators', type=int, required=False, default=100, help='Number of trees to use')
     parser.add_argument('--markers_list', type=list, default=["CD16", "CD20", "CD3", "CD31", "CD8a", "gp100", "HLA-ABC", "HLA-DR", "MelanA", "S100", "SOX10"], help='List of markers to use')
     parser.add_argument('--gt_celltypes', type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/imc_updated/coldata.tsv', help='metadata per cell segmented from IMC using CellProfiler (includes coordinates X,Y and cell-type)')    
-    parser.add_argument('--cell_types', type=str, required=False, default='all', help='helps in merging cell types')
+    parser.add_argument('--cell_types', type=str, required=False, default='tumor_CD8_CD4_CD20', help='helps in merging cell types')
     parser.add_argument('--split_csv', type=str, required=False, default='/raid/sonali/project_mvs/meta/tupro/split3.csv', help='Selected CV split, if None then the splitting used for the report is used')
     
     args = parser.parse_args()
     np.random.seed(args.seed)
     random.seed(args.seed)
-    save_path = args.save_path
+    save_path = os.path.join(args.save_path, args.cell_types)
     os.makedirs(save_path, exist_ok=True)
     
     markers_list = args.markers_list
