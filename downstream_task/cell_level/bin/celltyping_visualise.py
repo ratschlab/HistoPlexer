@@ -9,12 +9,11 @@ import seaborn as sns
 import argparse
 from src.celltyping_utils import plt_ax_adjust, get_density_bins
 
-# python -m bin.celltyping_visualise --cell_types='tumor_CD8_CD4_CD20'
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Apply RF on tabular predicted pseudo-single-cell data.')
     parser.add_argument('--pred_celltype_path', type=str, required=False, default='/raid/sonali/project_mvs/nmi_results/ours/tupro_ours_channels-all_seed-3/test_cell_types', 
                         help='Path to predicted cell types per pseudo-cell')
-    parser.add_argument('--cell_types', type=str, required=False, default='all', help='which cell type setting was used. Helps in merging cell types')
+    parser.add_argument('--cell_types', type=str, required=False, default='tumor_CD8_CD4_CD20', help='which cell type setting was used. Helps in merging cell types')
     parser.add_argument('--gt_celltypes', type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/imc_updated/coldata.tsv', help='metadata per cell segmented from IMC using CellProfiler (includes coordinates X,Y and cell-type)')    
     parser.add_argument('--save_path', type=str, required=False, default=None, help='Path to save predictions')
     parser.add_argument('--he_path', type=str, required=False, default='/raid/sonali/project_mvs/data/tupro/binary_he_rois', help='Path to he numpy rois')
