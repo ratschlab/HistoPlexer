@@ -55,12 +55,11 @@ Additional configs for using foundation model
 - `fm_features_path`: Path for h5 file containing the features from the foundation model. For this setup and run `bin/fm_embeddings.py` to get embeddings for HE images.  
 - `fm_feature_size`: Size of feature vector from the foundation model. Eg 1024 for uni_v1, 1536 for uni_v2 1280 for virchow_v2.
 
-### Inference 
+### Inference on tiles/ROIs
 ```bash
 python -m bin.inference
 ```
-Can run inference 
-and pass following arguments appropriately: 
+Can run inference by passing following arguments appropriately: 
 - `checkpoint_path`: Full path to the exact pth file to be used for running the inference. 
 - `src_folder`: Path to the HE numpy files for test set. 
 - `tgt_folder`: Path to the ground truth IMC/IF images. 
@@ -83,6 +82,28 @@ python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_o
                         --src_folder=/home/user/histoplexer/tupro/he_rois_test/binary_he_rois_test \
                         --test_embeddings_path=/home/user/histoplexer/he_rois_test/embeddings-uni_v1.h5 \
                         --tgt_folder=/home/user/histoplexer/tupro/binary_imc_processed_11x                        
+```
+
+### Inference on HE WSIs
+```bash
+python -m bin.inference_wsi
+```
+Can run inference by passing following arguments appropriately: 
+- `checkpoint_path`: Full path to the exact pth file to be used for running the inference on wsis. 
+- `wsi_paths`: Path where wsi h&e images reside. 
+- `data_set`: Which data_set to use. Inference will be run for all WSIs from this data_set residing in wsi_paths OR 
+- `sample`: Can pass the sample name of any specific file residing in wsi_paths for which we run wsi prediction. 
+- `device`: Device to use. Default 'cuda:0'.
+- `ref_img_path`: Path to reference image for stain normalization. Default None and if a path is not provided staining normalisation will not be done.
+- `save_path`: The path used for saving prediction from model. 
+- `chunk_size`: The tile size used for inference.
+- `batch_size`: The batch size used for inference. 
+
+Example run 
+```bash
+python -m bin.inference_wsi --checkpoint_path='/raid/sonali/project_mvs/nmi_results/ours/tupro_ours_channels-all_seed-3/checkpoint-step_495000.pt'\
+                            --wsi_paths='/raid/sonali/project_mvs/downstream_tasks/immune_phenotyping/tupro/HE_new_wsi' \
+                            --ref_img_path='/raid/sonali/project_mvs/data/tupro/HE_reference/MAHOBAM_F1.png'
 ```
 
 ### Downstream tasks 
