@@ -17,6 +17,12 @@ The data consists of:
 ```
 3. The splits are stored in `.csv` format on Google drive ([here](https://drive.google.com/drive/u/0/folders/1kWC8yDeMnkXyi3xIrkmyRbzKl3emD9dd)), which has three columns: `train`, `val`, `test`; each column contains the `slide_id` of all the train/val/test slides. You can also use [here]( https://colab.research.google.com/drive/11BmFojURIRU4Qp1uNix_6TmAaSq_JOKP?usp=drive_link) notebook to generate your own split.
 
+## Extracting features for HE and IMC pred modalities for multimodal experiments 
+For extracting features fom HE TCGA WSIs, use
+```bash
+python -m bin.he_feats --input_slide=<path-to-he-wsi> --checkpoint=<path-to-resnet-or-mia-model> --output_dir=<path-to-save-outputs> --tile_size=<tile-size> --out_size=<resize-tile-to-size> --device=<device-used>
+```
+
 ## Interactive Job or Customizing Submitting Script
 
 For interactive jobs or to customize the submission script, use:
