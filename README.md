@@ -84,6 +84,10 @@ python -m bin.inference --checkpoint_path=/home/user/histoplexer/tupro-patches_o
                         --tgt_folder=/home/user/histoplexer/tupro/binary_imc_processed_11x                        
 ```
 
+### Inference using pre-trained model 
+We have provided our trained model and its config in  `demo/model`
+Refer notebook `demo/model_inference.ipynb` on how to use the trained model for inference and feature extraction. 
+
 ### Inference on HE WSIs
 ```bash
 python -m bin.inference_wsi
