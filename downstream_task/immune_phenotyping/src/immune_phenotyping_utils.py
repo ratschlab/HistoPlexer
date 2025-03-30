@@ -38,6 +38,7 @@ class wsi_celltyping:
         
     def get_wsi_celltyping(self, centroids_wsi, wsi_multiplex):
 
+        self.rf_object = joblib.load(self.rf_path)
         # --- wsi pixels to cell counts ---
         x_max, y_max, n_channels = wsi_multiplex.shape
         ct_labels = []
@@ -55,12 +56,10 @@ class wsi_celltyping:
                     if (((x-x0)**2 + (y-y0)**2) <= self.radius**2) and (x<x_max and y<y_max) and (x>0 and y >0):
                         protein_sum = protein_sum + wsi_multiplex[x,y,:]
                         n_pixels = n_pixels + 1
-            print(protein_sum, n_pixels)
             if n_pixels == 0:
                 ct_labels.append(np.nan)
             else:
                 protein_mean = protein_sum/n_pixels
-                # print(protein_mean)
                 # get cell-type label
                 assert n_channels==11, 'RF prediction atm is possible only if the full multiplex is predicted!'
                 ct_label = self.get_ct_label_rf(protein_mean)
@@ -72,15 +71,13 @@ class wsi_celltyping:
 
     def get_ct_label_rf(self, protein_mean):
         ''' Get cell-type label (Tcells.CD8, tumor, other) based on predefined thresholds (125 among cells with the given cell-type label in train set)
-        rf_object: object with trained RF
         rf_cts: cell-type labels that RF was trained on / can predict
         protein_mean: average protein expression of the pseudo-cell
         '''        
-        rf_object = joblib.load(self.rf_path)
         rf_cts = sorted(self.rf_cell_types)
         raw_result = np.zeros((protein_mean.shape[0], len(rf_cts)))
-        for i in range(len(rf_object.estimators_)):
-            raw_result += rf_object.estimators_[i].predict(protein_mean)
+        for i in range(len(self.rf_object.estimators_)):
+            raw_result += self.rf_object.estimators_[i].predict(protein_mean)
         ct_label = rf_cts[np.argmax(raw_result)]
         ct_label = 'other' if ct_label not in ['Tcells.CD8', 'tumor', 'Tcells.CD3'] else ct_label
         return ct_label
