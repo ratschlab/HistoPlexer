@@ -18,10 +18,18 @@ The data consists of:
 3. The splits are stored in `.csv` format on Google drive ([here](https://drive.google.com/drive/u/0/folders/1kWC8yDeMnkXyi3xIrkmyRbzKl3emD9dd)), which has three columns: `train`, `val`, `test`; each column contains the `slide_id` of all the train/val/test slides. You can also use [here]( https://colab.research.google.com/drive/11BmFojURIRU4Qp1uNix_6TmAaSq_JOKP?usp=drive_link) notebook to generate your own split.
 
 ## Extracting features for HE and IMC pred modalities for multimodal experiments 
-For extracting features fom HE TCGA WSIs, use
+For extracting features from HE TCGA WSIs, use
 ```bash
 python -m bin.he_feats --input_slide=<path-to-he-wsi> --checkpoint=<path-to-resnet-or-mia-model> --output_dir=<path-to-save-outputs> --tile_size=<tile-size> --out_size=<resize-tile-to-size> --device=<device-used>
 ```
+
+For extracting IMC features using trained model and resnet, use
+```bash
+python -m bin.imc_feats --input_slide=<path-to-he-wsi> --checkpoint=<path-to-resnet-or-mia-model> --output_dir=<path-to-save-outputs> --tile_size=<tile-size>
+
+--histoplexer_model_path=<Histoplexer-trained-translator-model-path> --resnet_chkpt_path=<Resnet-model-path> --he_feats_path=<Path-to-saved-features-he-features-output_dir-from-he_feats.py> --device=<device-used> --metafile=<tcga-metadata-file> --save_path=<Path-to-saved-features>
+```
+
 
 ## Interactive Job or Customizing Submitting Script
 
