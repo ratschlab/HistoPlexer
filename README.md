@@ -111,9 +111,8 @@ python -m bin.inference_wsi --checkpoint_path='/raid/sonali/project_mvs/nmi_resu
 ```
 
 ### Downstream tasks 
+Refer `downstream_task` for details on each downstream task, including cell typing, immune phenotyping and tcga multimodal tasks prediction. 
 
-<!-- Details about our model architecture and implementation can be found in our [preprint](). If you use this code, please consider citing our work: -->
-
-
-## Downloading Ultivue dataset 
-Manuscript under review. Available upon acceptance.
+## Ultivue dataset 
+Refer notebook `demo/ultivue_data.ipynb` on how to use ultivue dataset.
+Manuscript under review. Ultivue dataset will be made available upon acceptance.
